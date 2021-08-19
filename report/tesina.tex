@@ -1,11 +1,14 @@
 \documentclass[letterpaper]{article}
-\usepackage[bottom=.7in]{geometry}
+\usepackage[bottom=0.7in, left=1in, right=1in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{caption}
+\usepackage{physics}
+\usepackage{amsfonts}
+\usepackage{amsmath, amssymb}
 \usepackage[breaklinks=true, hidelinks=true]{hyperref}
 \usepackage[nottoc, numbib]{tocbibind}
 \usepackage[
@@ -29,103 +32,257 @@ sorting=ynt
 	\newpage 
 	\section{Introduction}
 	-spiegare il problema
-		importanza di distinguere buoni e cattivi pagatori
-		statistiche?
-		
+	importanza di distinguere buoni e cattivi pagatori
+	statistiche?
+	
 	-interpretabilità?
 	-falsi buoni peggio di falsi cattivi
 	
+	
+	-tutto il codice si trova nella repo github xx
+	-per navigarlo usare il link xx di jupyternotebook
 	
 	\section{Dataset description}
 	\subsection{History}
 	The dataset used comes from the UCI Machine Learning Repository \cite{uci}, under the name "South German Credit (UPDATE) Data Set" \cite{dataset}. \\
 	Ulrike Grömping, professor at the Beuth University in Berlin, in her paper \cite{gromping} provides the history of this dataset, her considerations about the data and corrections on the code table.\\
-	Briefly, the data come from a large regional bank in the southern Germany that have been collected from 1973 to 1975, and have been originally provided to UCI in 1994 by Professor Dr. Hans Hofmann from Hamburg University \cite{hofmann} as part of a group of datasets in the context of the EU Statelog Project.\\
-	Because of many inconsistencies, found while trying to interpret the final results of her experiments, Grömping decided to research the story of this data, that she found in the German literature together with the same dataset with some differences. These informations helped her	to fix the code table (a file that explains the encoding of categorical variables) of this dataset by providing a new one (now attached in the .zip downloadable from UCI).\\ 
-	Grömping also explained that it was worth it because, although the dataset contains very old data, it is widely used in many researches in the domain of interpretable machine learning, indeed there are various R packages that include this data, and it \emph{is one of the few data sets on credit scoring that has a meaning attached to variables and their levels}, which is a very important feature when using this kind of data to do experiments whose interpretability is a key point of research.  \\
+	Basically, the data come from a large regional bank in the southern Germany that have been collected from 1973 to 1975, and have been originally provided to UCI in 1994 by Professor Dr. Hans Hofmann from Hamburg University \cite{hofmann} as part of a group of datasets in the context of the EU Statelog Project.\\
+	Because of many inconsistencies, found while trying to interpret the final results of her experiments, Grömping decided to research the story of this data, that she found in the German literature together with the same dataset with some differences. These informations helped her to fix the code table (a file that explains the encoding of categorical variables) of this dataset and consequently to provide the correct one (now attached in the .zip downloadable from UCI). \\ 
+	%TODO: write the inconsistencies? 
+	Grömping also explained that it was worth it because, although the dataset contains very old data, it is widely used in many researches in the domain of interpretable machine learning, indeed there are various R packages that include this data. In addition, it \emph{is one of the few data sets on credit scoring that has a meaning attached to variables and their levels}, which is a very important feature when using this kind of data to do experiments whose interpretability is a key point of research.  \\
 	
 	\subsection{General structure}
-	The dataset contains 1000 samples, each one characterized by 20 features and classified as \texttt{good} or \texttt{bad credit risk}, in particular there are 700 good ones and 300 bad ones [Figure \ref{fig:1}].  Customers with “good” credits perfectly complied with the conditions of the contract, while customers with “bad” credits did not comply with the contract as required.\\ As reported in the aforementioned paper \cite{gromping}, the actual percentage of bad credits was around 5\%, and examples of bad credit risk have been heavily oversampled. 
+	The dataset contains 1000 samples, each one characterized by 20 features and classified as \texttt{good} or \texttt{bad credit risk}, in particular there are 700 good ones and 300 bad ones [Figure \ref{fig:1}].  Customers with good credits perfectly complied with the conditions of the contract, while customers with bad credits did not comply with the contract as required.\\ As reported in the aforementioned paper \cite{gromping}, the actual percentage of bad credits was around 5\%, and examples of bad credit risk have been heavily oversampled. 
 	
-	\begin{center}
-		\includegraphics[scale=.35]{images/class.png}
-		\captionof{figure}{caption}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.35\textwidth]{images/class.png}
+		\captionof{figure}{\texttt{good} and \texttt{bad} credit risk distribution}
 		\label{fig:1}
-	\end{center}
+		
+	\end{figure}
 	
 	\subsection{Features description}
 	Among the 20 features, there are 3 numerical discrete variables:
 	\begin{itemize}
 		\item \textbf{duration}: credit duration in months
-		\item \textbf{amount}: credit amount in DM\footnote{stands for Deutsche Mark, was the official currency of West Germany from 1948 until 1990 and later the unified Germany from 1990 until 2002 \cite{dm}}; it is the result of an unknown monotonic transformation, thus original values are not available
+		\item \textbf{amount}: credit amount in DM\footnote{stands for Deutsche Mark, was the official currency of West Germany from 1948 until 1990 and later the unified Germany from 1990 until 2002 \cite{dm}}; original values are not available, the ones present in the dataset are the result of an unknown monotonic transformation
 		\item \textbf{age}: age of the debtor in years
 	\end{itemize}
-	7 additional numerical variables that have been aggregated into a fixed number of intervals, so that they can be treated as ordinal ones:
+	10 ordinal variables; most of theme were numerical ones on which binning has been applied, that means that they have been aggregated into a fixed number of intervals, so that they can be treated as ordinal features:
 	\begin{itemize}
 		\item \textbf{employment\_duration}:  duration of debtor’s employment with current employer (unemployed; < 1 year ; $\geq$ 1 and < 4 years; $\geq$ 4 and < 7 years; $\geq$ 7 years)
-		\item \textbf{installment\_rate}: : credit installments expressed as a percentage of debtor’s disposable income ( $\geq$ 35; $\geq$ 25 and < 35; $\geq$ 20 and < 25; < 20)
+		\item \textbf{installment\_rate}: credit installments expressed as a percentage of debtor’s disposable income ( $\geq$ 35; $\geq$ 25 and < 35; $\geq$ 20 and < 25; < 20); it is the only ordinal feature expressed in a decreasing order
 		\item \textbf{present\_residence}: from how many years the debtor lives in the present residence (< 1 year ; $\geq$ 1 and < 4 years; $\geq$ 4 and < 7 years; $\geq$ 7 years)
 		\item \textbf{number\_credits}:  number of credits including the current one the debtor has (or had) at this bank (1; 2 or 3; 4 or 5; $\geq$ 6)
 		\item \textbf{people\_liable}: number of people who financially depend on the debtor (i.e., are entitled to maintenance) (from 0 to 2; 3 or more)
-		\item \textbf{status}: status of the debtor’s checking account with the bank in DM (no checking account; < 0; 0 $\leq$ ... < 200; $\geq$ 200 / salary for at least 1 year)
-		\item \textbf{savings}: debtor’s savings in DM (unknown/no savings account; <  100; 100 $\leq$ ... <  500; 500 $\leq$ ... < 1000; $\leq$ 1000 )
+		\item \textbf{status\footnotemark}: status of the debtor’s checking account with the bank in DM (no checking account; < 0; 0 $\leq$ ... < 200; $\geq$ 200 / salary for at least 1 year)
+		\item \textbf{savings\footnotemark[\value{footnote}]}: debtor’s savings in DM (unknown/no savings account; <  100; 100 $\leq$ ... <  500; 500 $\leq$ ... < 1000; $\leq$ 1000 )
+		\item \textbf{credit\_history\footnotemark[\value{footnote}]}:  history of compliance with previous or concurrent credit contracts (delay in paying off in the past; critical account/other credits elsewhere; no credits taken/all credits paid back duly; existing credits paid back duly till now; all credits at this bank paid back duly )
+		\item \textbf{job}: quality of debtor’s job (unemployed/unskilled - non-resident; unskilled - resident; skilled employee/official; manager/self-employed/highly qualified employee)
+		\item \textbf{property}:  the debtor’s most valuable property, i.e. the highest possible code is used ( unknown / no property; car or other [savings don't fall into this category]; building society savings agreement (mortgage)/life insurance; real estate )
 	\end{itemize}
-	10 categorical variables:
+	\footnotetext{Those are considered as categorical by Grömping \cite{gromping}, but in my opinion their labels can be ranked and also considering that to properly manage categorical features an encoding have to be done, thus likely this brings to a huge number of features. Possibly, the position of \emph{no checking account} in \texttt{status} feature could be discussed with a domain expert.}
+	7 categorical variables:
 	\begin{itemize}
-		\item \textbf{credit\_history}:  history of compliance with previous or concurrent credit contracts (delay in paying off in the past; critical account/other credits elsewhere; no credits taken/all credits paid back duly; existing credits paid back duly till now; all credits at this bank paid back duly )
 		\item \textbf{purpose}:  purpose for which the credit is needed (others; car (new); car (used); furniture/equipment; radio/television; domestic appliances; repairs; education; vacation; retraining; business)
 		\item \textbf{personal\_status\_sex}:  combined information on sex and marital status; sex cannot be recovered from the variable because male singles and female non-singles are coded with the same code; in addition, female widows are not listed in any of the categories (male divorced/separated; female non-single or male single; male married/widowed; female single)
 		\item \textbf{other\_debtors}: whether there is another debtor or a guarantor for the credit (none; co-applicant; guarantor)
-		\item \textbf{property}:  the debtor’s most valuable property, i.e. the highest possible code is used ( unknown / no property; car or other [savings don't fall into this category]; building society savings agreement (mortgage)/life insurance; real estate )
 		\item \textbf{other\_installment\_plans}: installment plans from providers other than the credit-giving bank (bank; stores; none)
 		\item \textbf{housing}:  type of housing the debtor lives in (for free; rent; own)
-		\item \textbf{job}: quality of debtor’s job (unemployed/unskilled - non-resident; unskilled - resident; skilled employee/official; manager/self-employed/highly qualified employee)
 		\item \textbf{telephone}:  whether there is a telephone landline registered on the debtor’s name; of course this variable would have no meaning nowadays, but this data come from 1970s (yes; no)
 		\item \textbf{foreign\_worker}: whether the debtor is a foreign worker (yes; no)
 	\end{itemize}	
-	Among these categorical features, a further distinction can be done, by dividing ordinal and nominal ones. In the first group I considered the ones whose values can be ranked, that are \textbf{credit\_history}, \textbf{property} and \textbf{job}. 
+		\begin{figure}[h]
+		\centering
+		\includegraphics[width=.8\textwidth]{images/distributions.png}
+		\captionof{figure}{Features' distributions}
+		\label{fig:2}
+	\end{figure}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.85\textwidth]{images/significant_boxplots.png}
+		\captionof{figure}{Box Plots of \texttt{duration}, \texttt{amount} ad \texttt{age}}
+		\label{fig:3}
+	\end{figure}
+	
+	\section{Dataset Analysis}
+	\subsection{Features' distributions} \label{features distrubution}
+	Here [Figure \ref{fig:2}] the distribution of the various features can be seen. Some of them are highly imbalanced, for instance it can be noticed that almost all customers are not foreigners and have neither another debtor nor a guarantor for the credit. \\
+	It might be interesting to take a look at the box plots of the numerical discrete features: \texttt{duration}, \texttt{amount} ad \texttt{age}  [Figure \ref{fig:3}]. Given that $Q_1$ and $Q_3$ are, respectively, the first and the third quartile, and that the interquartile range $IQR = Q_3 - Q_1$, in the chosen representation the whiskers are: the largest observed point that falls within $Q_3$ and $Q_3 + 1.5\cdot Q_3$ and the lowest observed point that falls within $Q_1$ and $Q_1 - 1.5\cdot Q_1$ \cite{boxplots_wiki}. The single points, instead, are highlighted in red if they fall within the lowest whisker and $4\cdot Q_1 - 3\cdot Q_3$ or within the highest whisker and  $4\cdot Q_3 - 3\cdot Q_1$ \cite{boxplots}, those are called \emph{suspected} outliers; while the blue points are the ones outside these ranges, thus they can be considered outliers beyond any doubt. \\
+	In this case, since those plots represent the univariate distribution, those points are not considered as outliers; they will be better evaluated and managed in section \ref{outliers}.
+
+	\subsection{Features distribution per class}
+	In figure [\ref{fig:4}] and [\ref{fig:5}], the same plots of section \ref{features distrubution} are shown, highlighting the distributions separately for the two class labels. 
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.8\textwidth]{images/distributions_by_class.png}
+		\captionof{figure}{Features' distributions per class}
+		\label{fig:4}
+	\end{figure}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.85\textwidth]{images/boxplots_with_classes.png}
+		\captionof{figure}{Box Plots of \texttt{duration}, \texttt{amount} ad \texttt{age} divided by class}
+		\label{fig:5}
+	\end{figure}
 	
 	\section{Data preprocessing}
 	\subsection{Labels encoding}
-	All the features' labels are expressed as integers. Indeed, both nominal and ordinal values have been previously mapped to integers using label encoding from 0 to N-1 (only for \textbf{purpouse} and \textbf{credit\_history}) or from 1 to N (all the other variables) where N is the number of labels for a certain feature. Apparently there is no particular reason for which the donor of the data did this distinction. For what concerns class labels (\texttt{credit risk}), they have been mapped to $0$ for \texttt{bad} and $1$ for \texttt{good}. \\
-	In order to make variables more uniform, two small changes have been done:
+	All the features' labels are expressed as integers: both categorical and ordinal ones have been previously mapped to integers by the donor of the data, using label encoding either from 0 to N-1 (only for \textbf{purpose} and \textbf{credit\_history}) or from 1 to N (all the other variables) where N is the number of labels for a certain feature. Apparently there is no particular reason for this distinction. For what concerns class labels (\texttt{credit risk}), they have been mapped to $0$ for \texttt{bad} and $1$ for \texttt{good}. \\
+	\paragraph{}In order to make variables more uniform, two small changes have been done:
 	\begin{itemize}
-		\item the variable \textbf{installment\_rate} is the only one among the ordinal variables having a decreasing order, so its mapping has been inverted;
-		\item \textbf{credit\_history}'s mapping has been changed from $0 \rightarrow 4$ to $1 \rightarrow 5$. Also \textbf{purpouse} has the same problem but it will be treated later.
+		\item the variable \textbf{installment\_rate} is the only one among the ordinal variables having a decreasing order, so its mapping has been inverted; thus now label \texttt{1} means $< 20$, label \texttt{2} means $\geq 20$ and $< 25$ and so on;
+		\item \textbf{credit\_history} and \textbf{purpose}'s mappings have been changed from $0 \rightarrow N-1$ to $1 \rightarrow N$.
 	\end{itemize}
-	In addition, all nominal variables have to be encoded in a different way with respect to the actual one ($1 \rightarrow N$). Indeed this encoding gives an arbitrary ranking to features that don't have one, and this is a problem when applying distance-based classification algorithms because those could potentially exploit this fictional structure created by the mapping itself. 
+	In addition, all categorical variables have to be encoded in a different way with respect to the actual one ($1 \rightarrow N$). Indeed this encoding gives an arbitrary ranking to features that do not have one, and this is a problem when applying distance-based classification algorithms because those could potentially exploit this fictional structure created by the mapping itself.
 	\subsection{One hot encoding vs binary encoding}
-	In order to perform this mapping I took into account two 
-	\section{Missing values and outliers}
-	\section{Dataset normalization}
+	In order to perform this mapping, two encoders have been taken into account
+	\paragraph{One hot encoding} For each unique value in a variable, a new column is created, whose values are either $1$s or $0$s, depending on whether the value matches the column header. \\ It is very simple, it does not interfere with interpretability since every new column has a specific meaning, and it allows very well to separate categorical features' labels. However, the downside is that we may end up with a huge number of features, especially if we need to map variables with an high number of labels.
+	\paragraph{Binary encoding} Values are firstly converted into their binary code, and then the digits are split into separate columns. \\ With this method, the overhead due to the increase in the number of features is limited, because a feature with $N$ distinct values is mapped into $\log_2N$ columns instead of $N$. The drawbacks are that the resulting features still have a weak binding between them and the new columns do not really have a specific meaning on their own. 
+	\paragraph{} Given these considerations, among the categorical variables:
+	\begin{itemize}
+		\item \textbf{purpose} (11 labels) has been encoded with binary encoding;
+		\item \textbf{other\_debtors}, \textbf{other\_installment\_plans}, \textbf{housing} and \textbf{personal\_status\_sex} (respectively with 3, 3, 3 and 4 labels) have been encoded using one hot encoding, since the benefit of binary encoding is not worthwhile with these small number of labels;
+		\item \textbf{telephone} and \textbf{foreign\_worker} have only 2 labels, therefore do not need any encoding.
+	\end{itemize}
+	Moreover, since one of the 3 labels of \textbf{other\_debtors} is \texttt{none}, it can be encoded with only two columns, where \texttt{none} is encoded with both at $0$.
 	
-	\section{Dataset Analysis}
+	\subsection{Missing values and outliers} \label{outliers}
+	The dataset does not contain any missing value.
+	\paragraph{} Regarding outliers detection, by looking at figures [\ref{fig:3}] and [\ref{fig:5}] (for more boxplots see: %TODO add link of jpnotebook or github repo or something
+	) it might seem that the dataset has a huge number of outliers; however, observing one feature at a time can be misleading, since the whole situation should be taken into account. For this reason, instead of considering the univariate distributions separately, can be a good idea to perform a multivariate outliers detection. \\
+	For this purpose, various distance metrics and techniques exist. Among them, Mahalanobis Distance (introduced by Mahalanobis in 1936 \cite{mahalanobis1936}) is an effective one, its goal is to find the distance between a point $ \va*{x} $ and a distribution. Differently from other techniques, it can manage distributions where every feature has a different scale and variance. Furthermore, by using the covariance matrix, it is able to detect outliers basing on the distribution of points, unlike e.g. the Euclidean distance [Figure \ref{fig:6}].
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.85\textwidth]{images/euclidean_vs_mahalanobis.jpeg}
+		\captionof{figure}{Euclidean distance vs Mahalonobis distance, image by \cite{mahalanobis_medium}}
+		\label{fig:6}
+	\end{figure}
 	
+	Given a point $\va{x}=(x_1,x_2,...,x_N)^T$ extracted from a distribution of $m$ points in $\va{X}=(X_1,X_2,...,X_N)^T$ where $X_1,X_2,...,X_N$ are the random variables of the dataset; given $\va{\mu}=(\mu_1,\mu_2,...,\mu_N)^T$ the mean of the set of observations whose entries $\mu_i=\frac{1}{m}\sum{x_i}$, and the covariance matrix $\Sigma$ whose entry \begin{equation} \label{covariance_matrix}
+\Sigma_{(i,j)}=cov[X_i,X_j]=E[(X_i-E[X_i])(X_j-E[X_j])]
+	\end{equation}
+	thus, the Mahalanobis Distance from a point $\va{x}$ and the set of points it has been extracted from is
+	\begin{equation}
+	d_M(\va{x},\va{\mu})=\sqrt{(\va{x}-\va{\mu})^T\Sigma^{-1}(\va{x}-\va{\mu})}
+	\end{equation}
+	The covariance matrix (equation \ref{covariance_matrix}) is estimated using the \texttt{numpy.cov} function, see the documentation \cite{numpy.cov} and the code for better understanding.\\
+	\begin{figure}
+		\centering
+	\begin{minipage}[c]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/mahalanobis.png}
+			\captionof{figure}{Box plot of Mahalonobis distance distribution}
+			\label{fig:7}
+	\end{minipage}
+	\begin{minipage}{0.05\textwidth}
+		\quad
+	\end{minipage}
+	\begin{minipage}[c]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/mahalanobis_violin.png}
+			\captionof{figure}{Violin plot of Mahalonobis distance distribution}
+			\label{fig:8}
+	\end{minipage}
+	\end{figure}
+	Once computed the Mahalanobis distance for every point, its distribution can be evaluated to detect multidimensional outliers. As can be seen in figures [\ref{fig:7}] and [\ref{fig:8}], there are a few points (seven) whose distance is greater than $Q_3+1.5\cdot Q_3$, thus they could be considered as multidimensional outliers. However, they are a very small number of points and, among those, four have class label \texttt{0} (\texttt{bad} credit risk), that is the one with the lowest number of observations. That means that they could seem outliers because there are not so many samples of this label (considering that the ones present have already been oversampled), thus they could be significant points in detecting bad credit risk. In addition, all those points fall in the range of the so called \emph{suspected outliers}, while there are no points $< 4\cdot Q_1 - 3\cdot Q_3$ or $> 4\cdot Q_3 - 3\cdot Q_1$ (that are the ranges where points are very likely to be outliers). For these reasons, those seven points are not removed from the dataset.
 	
-	\section{preprocessing}
-	-trovare outliers e decidere che farne
+	\subsection{Data normalization}
+	When performing analysis with datasets whose features have different scales, data normalization is a very important step in the preprocessing procedure. Indeed, especially when applying some specific techniques that rely on distance or variance (e.g. distance-based classification algorithm, PCA and so on), if features are not rescaled, the distance between points and data variance are more affected by those features that have larger scale or higher values. Thus, the features end up not to have the same importance. \\ In this case, the min-max scaling has been applied to features, that is, for each feature $X$, the new one $\hat{X}$:
+	\begin{equation}
+		\hat{X} = \frac{X - min(X)}{max(X) - min(X)}
+	\end{equation} 
+	in this way, every feature has been rescaled in the range $[0,1]$.
 	
-	-normalizzazione
+	\begin{figure}
+		\vspace{-2cm}
+		\centering
+		\begin{minipage}[c]{0.40\textwidth}
+			\includegraphics[width=\textwidth]{images/training_set.png}
+			\captionof{figure}{Training set}
+			\label{fig:9}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[c]{0.40\textwidth}
+			\includegraphics[width=\textwidth]{images/test_set.png}
+			\captionof{figure}{Test set}
+			\label{fig:10}
+		\end{minipage}
+	\end{figure}
 	
-	\section{Analysis}
-	-distribuzione variabili
-	-distribuzione variabili rispetto alle classi (scatter plot, violin plot)
+	\subsection{Training-test split}
+	To proceed in the classification phase, the dataset has been split into training and test set respectively for $80\%$ and $20\%$ in a stratified way, that means that in both sets, the proportion of \texttt{good} and \texttt{bad} credit risk of the original dataset has been kept [Figure \ref{fig:9} and \ref{fig:10}]. This is particularly important, because the test set (the one on which the trained classification algorithm will be evaluated), should be as much similar as possible to real data, that means keeping the proportion of label distribution, do not applying any further transformation to those data and do not use them during training. 
+	
+	\section{Dimensionality reduction}
+	\subsection{Curse of dimensionality}
+	After the encoding phase, the number of features (label excluded) went from 20 to 31. Of course, the encoding was needed, but in data analysis having to deal with many features can be problematic for a lot of reasons. Indeed this is called \emph{the curse of dimensionality}. When the dimensions increase, the volume of the hypercube containing the data increases as well, so all the points become more distant between them, thus making the dataset very sparse. To overcome this problem, the number of data points should increase exponentially with the dimension. Basically, all points become distant and at the same time they have similar distances among them; therefore, the concepts of nearest neighbours and distance become pointless. So, in cases like this, it is always a good idea to take into account using a dimensionality reduction technique. 
+	\subsection{Correlation based}
+	\subsection{PCA}
+	Principal Component Analysis is one of the most popular and simple techniques of dimensionality reduction. Its goal is to find a linear mapping that project the $m$ data points in a low dimensional space, from $d$ features to $n$, with $n << d$, in such a way that the information lost is as small as possible. \\
+	This technique has two formulations that lead to the same solution from different points of view.
+	\begin{itemize}
+		\item the \textbf{minimum error} formulation, that finds a solution to the problem
+		\begin{equation}
+\underset{U\in \mathbb{R}^{n,d}}{\mathrm{argmin}}\, \sum_{i}^{m}\norm{\va{x}_i - UU^T\va{x}_i}^2_2, \quad \mathrm{subject\ to\ } U^TU=\mathbb{I}
+		\end{equation}
+	The idea is that we want minimise the error, that is the information we loose, in projecting the data in a lower dimensional space. Indeed, the error is computed between each original point $\va{x}$ and its reconstruction $\hat{\va{x}}=UU^T\va{x}$. \\
+	Assuming that the data points are centred ($\va{\mu}=\va{0})$, and given the matrix of data points $X \in \mathbb{R}^{m,d}$, $m$ number of points and $d$ number of features, the solution to find the linear mapping (the orthogonal matrix $U^T$) is finding the $n$ eigenvectors ($\va{u}_1,\va{u}_2,...,\va{u}_n$) corresponding to the $n$ biggest eigenvalues ($\lambda_1\ge \lambda_2\ge ... \ge \lambda_n \ge ... \ge \lambda_d$) of the covariance matrix of $X$. Those eigenvectors (the \emph{principal components}) are the column of the matrix $U$, and the sum of the remaining eigenvalues is the error done in projecting the data in low dimensional space. However, since the data distribution is not known, the covariance matrix is estimated through the scatter matrix, also called sample covariance matrix
+	\begin{equation} \label{scatter_matrix}
+		S = X^TX
+	\end{equation}
+	still assuming $\va{\mu}=\va{0}$.
+	\item the \textbf{maximum variance} formulation, that aims to find as principal components the directions where the variance of the projection of data points is maximized, since the idea is that in the directions where the variance is maximum, are the ones where also the information carried is maximal. Those directions are found in the following way: given the matrix of data points $X \in \mathbb{R}^{m,d}$, and given the $d$ random variables $\va{z}_1,\va{z}_2,...,\va{z}_d$ from which the columns of $X$ has been sampled, the first principal component $\va{u}_1 = (\alpha_1, \alpha_2,...,\alpha_d)$, $\alpha_i \in \mathbb{R}$ is the one that satisfies (\ref{first_pc}).
+	
+	\begin{minipage}[c]{0.45\textwidth}
+		\begin{equation} \label{first_pc}
+			\begin{cases}
+				\underset{\va{u}_1}{\mathrm{argmax}}\, \mathrm{Var}(\sum_{i}^{d}\alpha_iz_i)\\
+				\sum_{i}^{d}\alpha_i^2 = 1
+			\end{cases}
+		\end{equation}
+	\end{minipage}
+	\begin{minipage}[c]{0.45\textwidth}
+		\begin{equation} \label{second_pc}
+			\begin{cases}
+				\underset{\va{u}_2}{\mathrm{argmax}}\, \mathrm{Var}(\sum_{i}^{d}\alpha_iz_i)\\
+				\sum_{i}^{d}\alpha_i^2 = 1\\
+				\langle\va{u}_1, \va{u}_2\rangle = 0
+			\end{cases}
+		\end{equation}
+	\end{minipage}
+
+	Then, once found, the second principal component is the vector in the second best direction in terms of variance, and that is orthogonal with respect to the first one. Thus $\va{u}_2 = (\alpha_1, \alpha_2,...,\alpha_d)$ must satisfy (\ref{second_pc}), and so on until the $n$ principal components are found, each one satisfying the constraints of equation \ref{first_pc} and the constraint of being orthogonal to the previous principal components. \\ By using Lagrange multipliers, this turns out finding $\va{u}_1,\va{u}_2,...,\va{u}_n$ by solving 
+	\begin{equation}
+		S\va{u_i} = \lambda_1\va{u_1}, \quad \mathrm{subject\ to\ }\norm{\va{u}_i} = 1 \ \mathrm{and\ } \va{u}_i \perp \va{u}_1,...,\va{u}{i-1}\\
+	\end{equation}
+	Where $S$ is again the sample covariance matrix (equation \ref{scatter_matrix}), that means that $\va{u}_1,\va{u}_2,...,\va{u}_n$ are the eigenvectors of the matrix $S$, corresponding to the eigenvalues $\lambda_1, lambda_2, ...,\lambda_n$. In addition, since the variance of the points projected along $\va{u}_i$ can be rewritten as $\va{u}_i^TS\va{u}_i$, each eigenvalue of its corresponding principal component is exactly equal to the variance of the dataset along that direction, and, in particular, the first $n$ eigenvectors found with the maximization variance method, are the ones corresponding to the $n$ maximum eigenvalues of the matrix $S$. Thus, the two methods are exactly equivalent.
+	\end{itemize}
+	In order to decide how many principal components to take, a trade off must be found in order to take neither too little information, nor too many features. 
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.95\textwidth]{images/scree_plot.png}
+		\captionof{figure}{Scree plot of principal components}
+		\label{fig:11}
+	\end{figure}
+	Here [Figure \ref{fig:11}] both the explained variance (the eigenvalues drown in descending order) and the cumulative explained variance (for each eigenvalue, its ratio w.r.t. the sum of all eigenvalues is computed, then drown in a cumulative way). In this case, since there is an elbow at $15$ principal components, and since at that point the cumulative explained variance is sightly higher that $85\%$, I decided to take $15$ as number of principal component to keep.
+	% TODO scree plot
+	% TODO ha bisogno di normalizzazione perchè si basa sulla varianza, il centering lo fa l'algoritmo, ma controllare!!
+	\subsection{KPCA} 	% TODO evaluate KPCA
+	\subsection{mRMR}
 	-correlazione variabili
 	-t-SNE
-	-clustering per vedere se mappa le label
-	
-	\section{dimensionality reduction}
 	-eliminare/aggregare variabili correlate 
 	-pca per capire quali sono le feature più importanti
-		-lineare
-		-kpca
+	-lineare
+	-kpca
 	-eventualmente di nuovo correlazione tra variabili
+
 	
-	\section{prepare data for training}
-	-oversampling
-	-undersampling
-	-smote
-	-divisione training-test
+	\section{dataset balancing}
+		-oversampling
+		-undersampling
+		-smote
 	
 	\section{classificazione}
 	-logistic regression (also + regularization ridge or lasso)
