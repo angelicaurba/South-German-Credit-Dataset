@@ -1,5 +1,5 @@
 \documentclass[letterpaper]{article}
-\usepackage[bottom=0.7in, left=1in, right=1in]{geometry}
+\usepackage[bottom=0.7in, left=1in, right=1in, top=.7in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
@@ -93,6 +93,7 @@ sorting=ynt
 		\item \textbf{telephone}:  whether there is a telephone landline registered on the debtor’s name; of course this variable would have no meaning nowadays, but this data come from 1970s (yes; no)
 		\item \textbf{foreign\_worker}: whether the debtor is a foreign worker (yes; no)
 	\end{itemize}	
+	\section{Dataset Analysis}
 		\begin{figure}[h]
 		\centering
 		\includegraphics[width=.8\textwidth]{images/distributions.png}
@@ -106,7 +107,6 @@ sorting=ynt
 		\label{fig:3}
 	\end{figure}
 	
-	\section{Dataset Analysis}
 	\subsection{Features' distributions} \label{features distrubution}
 	Here [Figure \ref{fig:2}] the distribution of the various features can be seen. Some of them are highly imbalanced, for instance it can be noticed that almost all customers are not foreigners and have neither another debtor nor a guarantor for the credit. \\
 	It might be interesting to take a look at the box plots of the numerical discrete features: \texttt{duration}, \texttt{amount} ad \texttt{age}  [Figure \ref{fig:3}]. Given that $Q_1$ and $Q_3$ are, respectively, the first and the third quartile, and that the interquartile range $IQR = Q_3 - Q_1$, in the chosen representation the whiskers are: the largest observed point that falls within $Q_3$ and $Q_3 + 1.5\cdot Q_3$ and the lowest observed point that falls within $Q_1$ and $Q_1 - 1.5\cdot Q_1$ \cite{boxplots_wiki}. The single points, instead, are highlighted in red if they fall within the lowest whisker and $4\cdot Q_1 - 3\cdot Q_3$ or within the highest whisker and  $4\cdot Q_3 - 3\cdot Q_1$ \cite{boxplots}, those are called \emph{suspected} outliers; while the blue points are the ones outside these ranges, thus they can be considered outliers beyond any doubt. \\
@@ -194,7 +194,6 @@ sorting=ynt
 	in this way, every feature has been rescaled in the range $[0,1]$.
 	
 	\begin{figure}
-		\vspace{-2cm}
 		\centering
 		\begin{minipage}[c]{0.40\textwidth}
 			\includegraphics[width=\textwidth]{images/training_set.png}
@@ -212,12 +211,28 @@ sorting=ynt
 	\end{figure}
 	
 	\subsection{Training-test split}
-	To proceed in the classification phase, the dataset has been split into training and test set respectively for $80\%$ and $20\%$ in a stratified way, that means that in both sets, the proportion of \texttt{good} and \texttt{bad} credit risk of the original dataset has been kept [Figure \ref{fig:9} and \ref{fig:10}]. This is particularly important, because the test set (the one on which the trained classification algorithm will be evaluated), should be as much similar as possible to real data, that means keeping the proportion of label distribution, do not applying any further transformation to those data and do not use them during training. 
+	To proceed in the classification phase, the dataset has been split into training and test set respectively for $80\%$ and $20\%$ in a stratified way, that means that in both sets, the proportion of \texttt{good} and \texttt{bad} credit risk of the original dataset has been kept [Figure \ref{fig:9} and \ref{fig:10}]. This is particularly important, because the test set (the one on which the trained classification algorithm will be evaluated), should be as much similar as possible to real data, that means keeping the proportion of label distribution, do not applying any further transformation to those data and do not use them during training. Indeed, all the dimensionality reduction techniques presented in the next section (\ref{dim_reduction}) has been applied only using the training set.
 	
-	\section{Dimensionality reduction}
+	\section{Dimensionality reduction} \label{dim_reduction}
 	\subsection{Curse of dimensionality}
-	After the encoding phase, the number of features (label excluded) went from 20 to 31. Of course, the encoding was needed, but in data analysis having to deal with many features can be problematic for a lot of reasons. Indeed this is called \emph{the curse of dimensionality}. When the dimensions increase, the volume of the hypercube containing the data increases as well, so all the points become more distant between them, thus making the dataset very sparse. To overcome this problem, the number of data points should increase exponentially with the dimension. Basically, all points become distant and at the same time they have similar distances among them; therefore, the concepts of nearest neighbours and distance become pointless. So, in cases like this, it is always a good idea to take into account using a dimensionality reduction technique. 
+	After the encoding phase, the number of features (label excluded) went from 20 to 31. Of course, the encoding was needed, but in data analysis having to deal with many features can be problematic for a lot of reasons. Indeed this is called \emph{the curse of dimensionality}. When the dimensions increase, the volume of the hypercube containing the data increases as well, so all the points become more distant between them, thus making the dataset very sparse. To overcome this problem, the number of data points should increase exponentially with the dimension. Basically, all points become distant and at the same time they have similar distances among them; therefore, the concepts of nearest neighbours and distance become pointless. So, in cases like this, it is always a good idea to consider using a dimensionality reduction technique. 
 	\subsection{Correlation based}
+	One first intuitive way to reduce dimensionality is by looking at the pairwise correlation between features, in order to spot possible duplicated ones. In this case [Figure \ref{fig:12}], most of the features are almost not correlated, or with very low values of pairwise correlation. There are some higher values between the features that are the result of label encoding (especially \textbf{other\_installment\_plans} and \textbf{housing}). Indeed, those features are naturally correlated by construction and, as a matter of fact, their correlation is negative, since their values are all $0$s and $1$s, and if one of them has a $0$ there will be for sure another one having $1$ for that data point. This, together with the fact that each original feature has been encoded in a few number of new ones (from $2$ to $4$) and that in some cases their values were highly imbalanced, contribute to their correlation values. 
+	\par In addition, it can be interesting to notice that there is a positive correlation ($\approx 0.65$) between \textbf{amount} and \textbf{duration} that can be explained by the fact that generally it needs more time to pay an higher credit, and between \textbf{property} and \textbf{housing\_3} ($\approx 0.52$), since the latter is $1$ when the person has its own house, and of course this feature's meaning partially overlaps with the other one.
+	\par In any case, there are not situations where some features can be considered duplicated. Also by looking at the dendrogram [Figure \ref{fig:13}] (built by hierarchically clustering the pairwise features' distances using the average linkage), it can be seen that even the nearest features are quite distant among them.  
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.85\textwidth]{images/correlation_pearson.png}
+		\captionof{figure}{Pairwise correlation according to Pearson coefficient }
+		\label{fig:12}
+	\end{figure}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.85\textwidth]{images/dendrogram_pearson.png}
+		\captionof{figure}{Dendrogram of pairwise distance between features}
+		\label{fig:13}
+	\end{figure}
+	
 	\subsection{PCA}
 	Principal Component Analysis is one of the most popular and simple techniques of dimensionality reduction. Its goal is to find a linear mapping that project the $m$ data points in a low dimensional space, from $d$ features to $n$, with $n << d$, in such a way that the information lost is as small as possible. \\
 	This technique has two formulations that lead to the same solution from different points of view.
@@ -232,44 +247,28 @@ sorting=ynt
 		S = X^TX
 	\end{equation}
 	still assuming $\va{\mu}=\va{0}$.
-	\item the \textbf{maximum variance} formulation, that aims to find as principal components the directions where the variance of the projection of data points is maximized, since the idea is that in the directions where the variance is maximum, are the ones where also the information carried is maximal. Those directions are found in the following way: given the matrix of data points $X \in \mathbb{R}^{m,d}$, and given the $d$ random variables $\va{z}_1,\va{z}_2,...,\va{z}_d$ from which the columns of $X$ has been sampled, the first principal component $\va{u}_1 = (\alpha_1, \alpha_2,...,\alpha_d)$, $\alpha_i \in \mathbb{R}$ is the one that satisfies (\ref{first_pc}).
-	
-	\begin{minipage}[c]{0.45\textwidth}
-		\begin{equation} \label{first_pc}
-			\begin{cases}
-				\underset{\va{u}_1}{\mathrm{argmax}}\, \mathrm{Var}(\sum_{i}^{d}\alpha_iz_i)\\
-				\sum_{i}^{d}\alpha_i^2 = 1
-			\end{cases}
-		\end{equation}
-	\end{minipage}
-	\begin{minipage}[c]{0.45\textwidth}
-		\begin{equation} \label{second_pc}
-			\begin{cases}
-				\underset{\va{u}_2}{\mathrm{argmax}}\, \mathrm{Var}(\sum_{i}^{d}\alpha_iz_i)\\
-				\sum_{i}^{d}\alpha_i^2 = 1\\
-				\langle\va{u}_1, \va{u}_2\rangle = 0
-			\end{cases}
-		\end{equation}
-	\end{minipage}
-
-	Then, once found, the second principal component is the vector in the second best direction in terms of variance, and that is orthogonal with respect to the first one. Thus $\va{u}_2 = (\alpha_1, \alpha_2,...,\alpha_d)$ must satisfy (\ref{second_pc}), and so on until the $n$ principal components are found, each one satisfying the constraints of equation \ref{first_pc} and the constraint of being orthogonal to the previous principal components. \\ By using Lagrange multipliers, this turns out finding $\va{u}_1,\va{u}_2,...,\va{u}_n$ by solving 
-	\begin{equation}
-		S\va{u_i} = \lambda_1\va{u_1}, \quad \mathrm{subject\ to\ }\norm{\va{u}_i} = 1 \ \mathrm{and\ } \va{u}_i \perp \va{u}_1,...,\va{u}{i-1}\\
-	\end{equation}
-	Where $S$ is again the sample covariance matrix (equation \ref{scatter_matrix}), that means that $\va{u}_1,\va{u}_2,...,\va{u}_n$ are the eigenvectors of the matrix $S$, corresponding to the eigenvalues $\lambda_1, lambda_2, ...,\lambda_n$. In addition, since the variance of the points projected along $\va{u}_i$ can be rewritten as $\va{u}_i^TS\va{u}_i$, each eigenvalue of its corresponding principal component is exactly equal to the variance of the dataset along that direction, and, in particular, the first $n$ eigenvectors found with the maximization variance method, are the ones corresponding to the $n$ maximum eigenvalues of the matrix $S$. Thus, the two methods are exactly equivalent.
+	\item the \textbf{maximum variance} formulation, that aims to find as principal components the directions where the variance of the projection of data points is maximized, since the idea is that the directions where the variance is maximum, are the ones where the information carried also is maximal. Those directions are to be found one at a time, and for each one the variance of data along that direction should be maximized,  enforcing the constraints that each principal component must have norm $1$ and it has to be orthogonal with respect to the previous ones. \\
+	In the end, it turns out that finding the first n principal components $\va{u}_1,\va{u}_2,...,\va{u}_n$ means to find the $n$ eigenvectors of the sample covariance matrix (equation \ref{scatter_matrix}) and that their corresponding eigenvalues, are exactly the variance of the points projected along that directions. In particular, the first $n$ eigenvectors found with the maximization variance method, are the ones corresponding to the $n$ maximum eigenvalues of the matrix $S$. Thus, the two methods are exactly equivalent.
 	\end{itemize}
-	In order to decide how many principal components to take, a trade off must be found in order to take neither too little information, nor too many features. 
+	\par In order to decide how many principal components to take, a trade off must be found in order to take neither too little information, nor too many features. 
 	\begin{figure}[h]
 		\centering
 		\includegraphics[width=.95\textwidth]{images/scree_plot.png}
 		\captionof{figure}{Scree plot of principal components}
 		\label{fig:11}
 	\end{figure}
-	Here [Figure \ref{fig:11}] both the explained variance (the eigenvalues drown in descending order) and the cumulative explained variance (for each eigenvalue, its ratio w.r.t. the sum of all eigenvalues is computed, then drown in a cumulative way). In this case, since there is an elbow at $15$ principal components, and since at that point the cumulative explained variance is sightly higher that $85\%$, I decided to take $15$ as number of principal component to keep.
-	% TODO scree plot
+	Here [Figure \ref{fig:11}] both the explained variance (the eigenvalues drown in descending order) and the cumulative explained variance (for each eigenvalue, its ratio w.r.t. the sum of all eigenvalues is computed, then drown in a cumulative way) are showed. In this case, since there is an elbow at $15$ principal components, and since at that point the cumulative explained variance is sightly higher than $85\%$, I decided to take $15$ as number of principal components to keep.
+	
 	% TODO ha bisogno di normalizzazione perchè si basa sulla varianza, il centering lo fa l'algoritmo, ma controllare!!
+
 	\subsection{KPCA} 	% TODO evaluate KPCA
+	
 	\subsection{mRMR}
+	\par Unfortunately, a downside of this technique is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates a feature selection based on Max-Dependency, Max-Relevance,
+	and Min-Redundancy (mRMR)\footnote{see \url{https://pypi.org/project/pymrmr/} for the documentation}
+	
+	
+	
 	-correlazione variabili
 	-t-SNE
 	-eliminare/aggregare variabili correlate 
@@ -303,6 +302,8 @@ sorting=ynt
 	
 	\newpage
 	\printbibliography
+	% TODO use \nocite{key} to include in the references :
+	% - libro da cui ho guardato la PCA ?
 	\addcontentsline{toc}{section}{References}
 	
 \end{document}
