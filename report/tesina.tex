@@ -40,7 +40,7 @@ sorting=ynt
 	
 	
 	-tutto il codice si trova nella repo github xx
-	-per navigarlo usare il link xx di jupyternotebook
+	-per navigarlo e browsing all images usare il link xx di jupyternotebook
 	
 	\section{Dataset description}
 	\subsection{History}
@@ -151,7 +151,7 @@ sorting=ynt
 	
 	\subsection{Missing values and outliers} \label{outliers}
 	The dataset does not contain any missing value.
-	\paragraph{} Regarding outliers detection, by looking at figures [\ref{fig:3}] and [\ref{fig:5}] (for more boxplots see: %TODO add link of jpnotebook or github repo or something
+	\paragraph{} Regarding outliers detection, by looking at figures [\ref{fig:3}] and [\ref{fig:5}] (for more boxplots see: % TODO add link of jpnotebook or github repo or something
 	) it might seem that the dataset has a huge number of outliers; however, observing one feature at a time can be misleading, since the whole situation should be taken into account. For this reason, instead of considering the univariate distributions separately, can be a good idea to perform a multivariate outliers detection. \\
 	For this purpose, various distance metrics and techniques exist. Among them, Mahalanobis Distance (introduced by Mahalanobis in 1936 \cite{mahalanobis1936}) is an effective one, its goal is to find the distance between a point $ \va*{x} $ and a distribution. Differently from other techniques, it can manage distributions where every feature has a different scale and variance. Furthermore, by using the covariance matrix, it is able to detect outliers basing on the distribution of points, unlike e.g. the Euclidean distance [Figure \ref{fig:6}].
 	\begin{figure}[h]
@@ -221,6 +221,8 @@ sorting=ynt
 	One first intuitive way to reduce dimensionality is by looking at the pairwise correlation between features, in order to spot possible duplicated ones. In this case [Figure \ref{fig:12}], most of the features are almost not correlated, or with very low values of pairwise correlation. There are some higher values between the features that are the result of label encoding (especially \textbf{other\_installment\_plans} and \textbf{housing}). Indeed, those features are naturally correlated by construction and, as a matter of fact, their correlation is negative, since their values are all $0$s and $1$s, and if one of them has a $0$ there will be for sure another one having $1$ for that data point. This, together with the fact that each original feature has been encoded in a few number of new ones (from $2$ to $4$) and that in some cases their values were highly imbalanced, contribute to their correlation values. 
 	\par In addition, it can be interesting to notice that there is a positive correlation ($\approx 0.65$) between \textbf{amount} and \textbf{duration} that can be explained by the fact that generally it needs more time to pay an higher credit, and between \textbf{property} and \textbf{housing\_3} ($\approx 0.52$), since the latter is $1$ when the person has its own house, and of course this feature's meaning partially overlaps with the other one.
 	\par In any case, there are not situations where some features can be considered duplicated. Also by looking at the dendrogram [Figure \ref{fig:13}] (built by hierarchically clustering the pairwise features' distances using the average linkage), it can be seen that even the nearest features are quite distant among them.  
+	
+	%TODO dire che ho provato anche l'indice di spearman ma che ha prodotto risultati simili. è visibile sul sito/repo
 	\begin{figure}[h]
 		\centering
 		\includegraphics[width=.85\textwidth]{images/correlation_pearson.png}
@@ -251,30 +253,31 @@ sorting=ynt
 	\item the \textbf{maximum variance} formulation, that aims to find as principal components the directions where the variance of the projection of data points is maximized, since the idea is that the directions where the variance is maximum, are the ones where the information carried also is maximal. Those directions are to be found one at a time, and for each one the variance of data along that direction should be maximized,  enforcing the constraints that each principal component must have norm $1$ and it has to be orthogonal with respect to the previous ones. \\
 	In the end, it turns out that finding the first n principal components $\va{u}_1,\va{u}_2,...,\va{u}_n$ means to find the $n$ eigenvectors of the sample covariance matrix (equation \ref{scatter_matrix}) and that their corresponding eigenvalues, are exactly the variance of the points projected along that directions. In particular, the first $n$ eigenvectors found with the maximization variance method, are the ones corresponding to the $n$ maximum eigenvalues of the matrix $S$. Thus, the two methods are exactly equivalent.
 	\end{itemize}
-	\par In order to decide how many principal components to take, a trade off must be found in order to take neither too little information, nor too many features. 
 	\begin{figure}[h]
-		\centering
-		\includegraphics[width=.95\textwidth]{images/scree_plot.png}
-		\captionof{figure}{Scree plot of principal components}
-		\label{fig:11}
+	\centering
+	\includegraphics[width=.95\textwidth]{images/scree_plot.png}
+	\captionof{figure}{Scree plot of principal components}
+	\label{fig:11}
 	\end{figure}
+	\par In order to decide how many principal components to take, a trade off must be found in order to take neither too little information, nor too many features. 
 	Here [Figure \ref{fig:11}] both the explained variance (the eigenvalues drown in descending order) and the cumulative explained variance (for each eigenvalue, its ratio w.r.t. the sum of all eigenvalues is computed, then drown in a cumulative way) are showed. In this case, since there is an elbow at $15$ principal components, and since at that point the cumulative explained variance is sightly higher than $85\%$, I decided to take $15$ as number of principal components to keep.
 	
 	% TODO ha bisogno di normalizzazione perchè si basa sulla varianza, il centering lo fa l'algoritmo, ma controllare!!
 
 	\subsection{Kernel PCA} 
 	% TODO sistemare la spiegazione di kernel	
-	A possible variation of the above technique is its Kernel extension. In fact, PCA tries to reduce the dimensionality by finding a linear mapping to project the data from the original space to a lower dimensional space, while the Kernel PCA does the same but it operates in a very high dimensional space (DA SISTEMARE)\\
-	In particular, in the implementation by \texttt{sklearn}\footnote{For the documentation see: \url{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.KernelPCA.html}}, there are four possible kernels: poly, rbf, sigmoid and cosine.
+	A possible variation of the above technique is its Kernel extension. In fact the Kernel PCA does the same as PCA, but it operates in a high dimensional space. The idea behind this relies on the intuition that many datasets, which are not linearly separable in their space, can be made linearly separable by projecting them into a higher dimensional space; then, in that space, PCA is more likely to give a good result.\\ However, assuming that a mapping $\Phi$ from the feature space to a Reproducing Kernel Hilbert Space (RKHS) exists, there is no need to map all points $\va{x} \rightarrow \Phi(\va{x})$ and apply PCA on the new space. Indeed, thanks to the \emph{Mercer's theorem}, we only need a symmetric function $k: \raisebox{2pt}{$\chi$} \times \raisebox{2pt}{$\chi$} \rightarrow \mathbb{R}$ positive semi-definite to have the assurance that $k$ implements an inner product in some RKHS; thus, there is no need neither to compute $\Phi$, nor to project the data points in the Hilbert space. Specifically, given $n$ data points ($\va{x}_i$) and the matrix $K_{n\times n}$ whose element $K(i,j)=\Phi(\va{x}_i)^T\cdot\Phi(\va{x}_j)=k(x_i,x_j)$, the KPCA solution is just finding the top $d$ eigenvectors of $K$, corresponding to the highest eigenvalues.  \\
+	In particular, in the implementation by \texttt{sklearn}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.KernelPCA.html}}, there are four possible non-linear kernels: poly, rbf, sigmoid and cosine.
 	\begin{figure}[h]
 		\centering
 		\includegraphics[width=.9\textwidth]{images/scree_plot_kpca.png}
 		\captionof{figure}{Scree plot of KPCA with four different kernels}
 		\label{fig:14}
 	\end{figure}
+	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points. The best one seems to be \texttt{poly}, 
 	
 	\subsection{mRMR}
-	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{see \url{https://pypi.org/project/pymrmr/} for the documentation}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. Two possible feature selection schemas can be applied: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID). To evaluate the classification results of this method with the others % TODO other/others depending on having applied or not KPCA
+	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{documentation at: \url{https://pypi.org/project/pymrmr/}}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. Two possible feature selection schemas can be applied: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID). To evaluate the classification results of this method with the others % TODO other/others depending on having applied or not KPCA
 	, it has been set to select $15$ features, that for the two schemas are respectively:
 	\begin{itemize}
 		\item \textbf{MIQ}: status, foreign\_worker, other\_installment\_plans\_2, purpose\_2, credit\_history, property, savings, housing\_1, personal\_status\_sex\_1, other\_installment\_plans\_1, other\_debtors\_1, other\_debtors\_2, age, number\_credits, installment\_rate,
@@ -317,8 +320,15 @@ sorting=ynt
 	
 	\newpage
 	\printbibliography
+	\nocite{MohriRostamizadehTalwalkar18}
 	% TODO use \nocite{key} to include in the references :
 	% - libro da cui ho guardato la PCA ?
 	\addcontentsline{toc}{section}{References}
+	
+	% TODO:
+	% - capire la kernelizzazione per poterla spiegare una volta per tutte (nella KPCA e poi NON doverla rispiegare sotto o viceversa)
+	% - capire bene i parametri dei kernel per poterli spiegare (nella KPCA e NON sotto o viceversa)
+	% - decidere se usare la KPCA anche dopo oppure no, e nel caso quale kernel
+	% - è corretto valutarli sulla base del minimo errore di ricostruzione?
 	
 \end{document}
