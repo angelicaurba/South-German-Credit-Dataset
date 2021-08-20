@@ -109,6 +109,7 @@ sorting=ynt
 	
 	\subsection{Features' distributions} \label{features distrubution}
 	Here [Figure \ref{fig:2}] the distribution of the various features can be seen. Some of them are highly imbalanced, for instance it can be noticed that almost all customers are not foreigners and have neither another debtor nor a guarantor for the credit. \\
+	% TODO la documentazione meglio metterla come nota o tra parentesi inserendo l'url
 	It might be interesting to take a look at the box plots of the numerical discrete features: \texttt{duration}, \texttt{amount} ad \texttt{age}  [Figure \ref{fig:3}]. Given that $Q_1$ and $Q_3$ are, respectively, the first and the third quartile, and that the interquartile range $IQR = Q_3 - Q_1$, in the chosen representation the whiskers are: the largest observed point that falls within $Q_3$ and $Q_3 + 1.5\cdot Q_3$ and the lowest observed point that falls within $Q_1$ and $Q_1 - 1.5\cdot Q_1$ \cite{boxplots_wiki}. The single points, instead, are highlighted in red if they fall within the lowest whisker and $4\cdot Q_1 - 3\cdot Q_3$ or within the highest whisker and  $4\cdot Q_3 - 3\cdot Q_1$ \cite{boxplots}, those are called \emph{suspected} outliers; while the blue points are the ones outside these ranges, thus they can be considered outliers beyond any doubt. \\
 	In this case, since those plots represent the univariate distribution, those points are not considered as outliers; they will be better evaluated and managed in section \ref{outliers}.
 
@@ -261,11 +262,25 @@ sorting=ynt
 	
 	% TODO ha bisogno di normalizzazione perchè si basa sulla varianza, il centering lo fa l'algoritmo, ma controllare!!
 
-	\subsection{KPCA} 	% TODO evaluate KPCA
+	\subsection{Kernel PCA} 
+	% TODO sistemare la spiegazione di kernel	
+	A possible variation of the above technique is its Kernel extension. In fact, PCA tries to reduce the dimensionality by finding a linear mapping to project the data from the original space to a lower dimensional space, while the Kernel PCA does the same but it operates in a very high dimensional space (DA SISTEMARE)\\
+	In particular, in the implementation by \texttt{sklearn}\footnote{For the documentation see: \url{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.KernelPCA.html}}, there are four possible kernels: poly, rbf, sigmoid and cosine.
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.9\textwidth]{images/scree_plot_kpca.png}
+		\captionof{figure}{Scree plot of KPCA with four different kernels}
+		\label{fig:14}
+	\end{figure}
 	
 	\subsection{mRMR}
-	\par Unfortunately, a downside of this technique is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates a feature selection based on Max-Dependency, Max-Relevance,
-	and Min-Redundancy (mRMR)\footnote{see \url{https://pypi.org/project/pymrmr/} for the documentation}
+	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{see \url{https://pypi.org/project/pymrmr/} for the documentation}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. Two possible feature selection schemas can be applied: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID). To evaluate the classification results of this method with the others % TODO other/others depending on having applied or not KPCA
+	, it has been set to select $15$ features, that for the two schemas are respectively:
+	\begin{itemize}
+		\item \textbf{MIQ}: status, foreign\_worker, other\_installment\_plans\_2, purpose\_2, credit\_history, property, savings, housing\_1, personal\_status\_sex\_1, other\_installment\_plans\_1, other\_debtors\_1, other\_debtors\_2, age, number\_credits, installment\_rate,
+		\item \textbf{MID}: status, foreign\_worker, credit\_history, purpose\_2, savings, housing\_2, other\_installment\_plans\_3, personal\_status\_sex\_1, other\_debtors\_1, amount, duration, number\_credits, other\_debtors\_2, age, installment\_rate
+	\end{itemize}
+	As can be seen, most of the features selected with the two selections are the same.
 	
 	
 	
