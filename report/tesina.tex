@@ -1,5 +1,5 @@
 \documentclass[letterpaper]{article}
-\usepackage[bottom=0.7in, left=1in, right=1in, top=.7in]{geometry}
+\usepackage[bottom=0.7in, left=.5in, right=1in, top=.7in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
@@ -134,7 +134,8 @@ sorting=ynt
 	\paragraph{}In order to make variables more uniform, two small changes have been done:
 	\begin{itemize}
 		\item the variable \textbf{installment\_rate} is the only one among the ordinal variables having a decreasing order, so its mapping has been inverted; thus now label \texttt{1} means $< 20$, label \texttt{2} means $\geq 20$ and $< 25$ and so on;
-		\item \textbf{credit\_history} and \textbf{purpose}'s mappings have been changed from $0 \rightarrow N-1$ to $1 \rightarrow N$.
+		\item \textbf{credit\_history} and \textbf{purpose}'s mappings have been changed from $0 \rightarrow N-1$ to $1 \rightarrow N$;
+		\item in this kind of classification, the \emph{positive} class is the one we are more interested classify correctly, in this case the \texttt{bad} creditors. By default, the \emph{positive} class has label $1$, and the other, the \emph{negative}, has label $0$; thus, the class labels has been inverted.
 	\end{itemize}
 	In addition, all categorical variables have to be encoded in a different way with respect to the actual one ($1 \rightarrow N$). Indeed this encoding gives an arbitrary ranking to features that do not have one, and this is a problem when applying distance-based classification algorithms because those could potentially exploit this fictional structure created by the mapping itself.
 	\subsection{One hot encoding vs binary encoding}
@@ -188,11 +189,13 @@ sorting=ynt
 	Once computed the Mahalanobis distance for every point, its distribution can be evaluated to detect multidimensional outliers. As can be seen in figures [\ref{fig:7}] and [\ref{fig:8}], there are a few points (seven) whose distance is greater than $Q_3+1.5\cdot Q_3$, thus they could be considered as multidimensional outliers. However, they are a very small number of points and, among those, four have class label \texttt{0} (\texttt{bad} credit risk), that is the one with the lowest number of observations. That means that they could seem outliers because there are not so many samples of this label (considering that the ones present have already been oversampled), thus they could be significant points in detecting bad credit risk. In addition, all those points fall in the range of the so called \emph{suspected outliers}, while there are no points $< 4\cdot Q_1 - 3\cdot Q_3$ or $> 4\cdot Q_3 - 3\cdot Q_1$ (that are the ranges where points are very likely to be outliers). For these reasons, those seven points are not removed from the dataset.
 	
 	\subsection{Data normalization}
-	When performing analysis with datasets whose features have different scales, data normalization is a very important step in the preprocessing procedure. Indeed, especially when applying some specific techniques that rely on distance or variance (e.g. distance-based classification algorithm, PCA and so on), if features are not rescaled, the distance between points and data variance are more affected by those features that have larger scale or higher values. Thus, the features end up not to have the same importance. \\ In this case, the min-max scaling has been applied to features, that is, for each feature $X$, the new one $\hat{X}$:
+	When performing analysis with datasets whose features have different scales, data normalization is a very important step in the preprocessing procedure. Indeed, especially when applying some specific techniques that rely on distance or variance (e.g. distance-based classification algorithm, PCA and so on), if features are not rescaled, the distance between points and data variance are more affected by those features that have larger scale or higher values. Thus, the features end up not to have the same importance.\\
+	In addition, although some algorithms' implementations take care of centering data (e.g. \texttt{sklearn.decomposition\\.PCA}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html}}), others do not (e.g. \texttt{sklearn.decomposition.KernelPCA}), thus in order to avoid problems in data analysis, data points are also centred.\\
+	Specifically, the following transformation has been applied to features, that is, for each feature $X$, the new one $\hat{X}$:
 	\begin{equation}
-		\hat{X} = \frac{X - min(X)}{max(X) - min(X)}
+		\hat{X} = \frac{X - mean(X)}{max(X) - min(X)}
 	\end{equation} 
-	in this way, every feature has been rescaled in the range $[0,1]$.
+	in this way, every feature is centered ($\mu_i = 0$) and rescaled in a unitary range. 
 	
 	\begin{figure}
 		\centering
@@ -237,7 +240,13 @@ sorting=ynt
 	\end{figure}
 	
 	\subsection{PCA}
-	Principal Component Analysis is one of the most popular and simple techniques of dimensionality reduction. Its goal is to find a linear mapping that project the $m$ data points in a low dimensional space, from $d$ features to $n$, with $n << d$, in such a way that the information lost is as small as possible. \\
+	Principal Component Analysis is one of the most popular and simple techniques of dimensionality reduction. Its goal is to find a linear mapping that project the $m$ data points in a low dimensional space, from $d$ features to $n$, with $n << d$, in such a way that the information lost is as small as possible. 
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.95\textwidth]{images/scree_plot.png}
+		\captionof{figure}{Scree plot of principal components}
+		\label{fig:11}
+	\end{figure}
 	This technique has two formulations that lead to the same solution from different points of view.
 	\begin{itemize}
 		\item the \textbf{minimum error} formulation, that finds a solution to the problem
@@ -245,7 +254,7 @@ sorting=ynt
 \underset{U\in \mathbb{R}^{n,d}}{\mathrm{argmin}}\, \sum_{i}^{m}\norm{\va{x}_i - UU^T\va{x}_i}^2_2, \quad \mathrm{subject\ to\ } U^TU=\mathbb{I}
 		\end{equation}
 	The idea is that we want minimise the error, that is the information we loose, in projecting the data in a lower dimensional space. Indeed, the error is computed between each original point $\va{x}$ and its reconstruction $\hat{\va{x}}=UU^T\va{x}$. \\
-	Assuming that the data points are centred ($\va{\mu}=\va{0})$, and given the matrix of data points $X \in \mathbb{R}^{m,d}$, $m$ number of points and $d$ number of features, the solution to find the linear mapping (the orthogonal matrix $U^T$) is finding the $n$ eigenvectors ($\va{u}_1,\va{u}_2,...,\va{u}_n$) corresponding to the $n$ biggest eigenvalues ($\lambda_1\ge \lambda_2\ge ... \ge \lambda_n \ge ... \ge \lambda_d$) of the covariance matrix of $X$. Those eigenvectors (the \emph{principal components}) are the column of the matrix $U$, and the sum of the remaining eigenvalues is the error done in projecting the data in low dimensional space. However, since the data distribution is not known, the covariance matrix is estimated through the scatter matrix, also called sample covariance matrix
+	Assuming that the data points are centered ($\va{\mu}=\va{0})$, and given the matrix of data points $X \in \mathbb{R}^{m,d}$, $m$ number of points and $d$ number of features, the solution to find the linear mapping (the orthogonal matrix $U^T$) is finding the $n$ eigenvectors ($\va{u}_1,\va{u}_2,...,\va{u}_n$) corresponding to the $n$ biggest eigenvalues ($\lambda_1\ge \lambda_2\ge ... \ge \lambda_n \ge ... \ge \lambda_d$) of the covariance matrix of $X$. Those eigenvectors (the \emph{principal components}) are the column of the matrix $U$, and the sum of the remaining eigenvalues is the error done in projecting the data in low dimensional space. However, since the data distribution is not known, the covariance matrix is estimated through the scatter matrix, also called sample covariance matrix
 	\begin{equation} \label{scatter_matrix}
 		S = X^TX
 	\end{equation}
@@ -253,20 +262,11 @@ sorting=ynt
 	\item the \textbf{maximum variance} formulation, that aims to find as principal components the directions where the variance of the projection of data points is maximized, since the idea is that the directions where the variance is maximum, are the ones where the information carried also is maximal. Those directions are to be found one at a time, and for each one the variance of data along that direction should be maximized,  enforcing the constraints that each principal component must have norm $1$ and it has to be orthogonal with respect to the previous ones. \\
 	In the end, it turns out that finding the first n principal components $\va{u}_1,\va{u}_2,...,\va{u}_n$ means to find the $n$ eigenvectors of the sample covariance matrix (equation \ref{scatter_matrix}) and that their corresponding eigenvalues, are exactly the variance of the points projected along that directions. In particular, the first $n$ eigenvectors found with the maximization variance method, are the ones corresponding to the $n$ maximum eigenvalues of the matrix $S$. Thus, the two methods are exactly equivalent.
 	\end{itemize}
-	\begin{figure}[h]
-	\centering
-	\includegraphics[width=.95\textwidth]{images/scree_plot.png}
-	\captionof{figure}{Scree plot of principal components}
-	\label{fig:11}
-	\end{figure}
 	\par In order to decide how many principal components to take, a trade off must be found in order to take neither too little information, nor too many features. 
 	Here [Figure \ref{fig:11}] both the explained variance (the eigenvalues drown in descending order) and the cumulative explained variance (for each eigenvalue, its ratio w.r.t. the sum of all eigenvalues is computed, then drown in a cumulative way) are showed. In this case, since there is an elbow at $15$ principal components, and since at that point the cumulative explained variance is sightly higher than $85\%$, I decided to take $15$ as number of principal components to keep.
-	
-	% TODO ha bisogno di normalizzazione perchè si basa sulla varianza, il centering lo fa l'algoritmo, ma controllare!!
 
-	\subsection{Kernel PCA} 
-	% TODO sistemare la spiegazione di kernel	
-	A possible variation of the above technique is its Kernel extension. In fact the Kernel PCA does the same as PCA, but it operates in a high dimensional space. The idea behind this relies on the intuition that many datasets, which are not linearly separable in their space, can be made linearly separable by projecting them into a higher dimensional space; then, in that space, PCA is more likely to give a good result.\\ However, assuming that a mapping $\Phi$ from the feature space to a Reproducing Kernel Hilbert Space (RKHS) exists, there is no need to map all points $\va{x} \rightarrow \Phi(\va{x})$ and apply PCA on the new space. Indeed, thanks to the \emph{Mercer's theorem}, we only need a symmetric function $k: \raisebox{2pt}{$\chi$} \times \raisebox{2pt}{$\chi$} \rightarrow \mathbb{R}$ positive semi-definite to have the assurance that $k$ implements an inner product in some RKHS; thus, there is no need neither to compute $\Phi$, nor to project the data points in the Hilbert space. Specifically, given $n$ data points ($\va{x}_i$) and the matrix $K_{n\times n}$ whose element $K(i,j)=\Phi(\va{x}_i)^T\cdot\Phi(\va{x}_j)=k(x_i,x_j)$, the KPCA solution is just finding the top $d$ eigenvectors of $K$, corresponding to the highest eigenvalues.  \\
+	\subsection{Kernel PCA} 	
+	A possible variation of the above technique is its Kernel extension. In fact, the Kernel PCA does the same as PCA, but it operates in a high dimensional space. The idea behind this relies on the intuition that many datasets, which are not linearly separable in their space, can be made linearly separable by projecting them into a higher dimensional space; then, in that space, PCA is more likely to give a good result.\\ However, assuming that a mapping $\Phi$ from the feature space to a Reproducing Kernel Hilbert Space (RKHS) exists, there is no need to map all points $\va{x} \rightarrow \Phi(\va{x})$ and apply PCA on the new space. Indeed, thanks to the \emph{Mercer's theorem}, we only need a symmetric function $k: \raisebox{2pt}{$\chi$} \times \raisebox{2pt}{$\chi$} \rightarrow \mathbb{R}$ positive semi-definite to have the assurance that $k$ implements an inner product in some RKHS; thus, there is no need neither to compute $\Phi$, nor to project the data points in the Hilbert space. Specifically, given $n$ data points ($\va{x}_i$) and the matrix $K_{n\times n}$ whose element $K(i,j)=\Phi(\va{x}_i)^T\cdot\Phi(\va{x}_j)=k(\va{x}_i,\va{x}_j)$, the KPCA solution is just finding the top $d$ eigenvectors of $K$, corresponding to the highest eigenvalues. \\
 	In particular, in the implementation by \texttt{sklearn}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.KernelPCA.html}}, there are four possible non-linear kernels: poly, rbf, sigmoid and cosine.
 	\begin{figure}[h]
 		\centering
@@ -274,34 +274,53 @@ sorting=ynt
 		\captionof{figure}{Scree plot of KPCA with four different kernels}
 		\label{fig:14}
 	\end{figure}
-	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points. The best one seems to be \texttt{poly}, 
+	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points; in terms of this metric the best one seems to be \texttt{poly}, the polynomial kernel. However, by looking at their Scree plots [Figure \ref{fig:14}], they seems pretty similar both among them and with respect to the result of standard PCA [Figure \ref{fig:11}]: they all have an elbow in explained variance graph around $15$ principal components, and in that point the cumulative explained variance is around $85\%$ ($82\%$ for \texttt{rbf} kernel).
+	% TODO decidere se usarla in classificazione o no!
+	% TODO se usarla, dire che si prendono sempre 15 pc
 	
 	\subsection{mRMR}
-	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{documentation at: \url{https://pypi.org/project/pymrmr/}}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. Two possible feature selection schemas can be applied: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID). To evaluate the classification results of this method with the others % TODO other/others depending on having applied or not KPCA
+	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{documentation at: \url{https://pypi.org/project/pymrmr/}}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. The authors of the paper have investigated two ways to combine redundancy and relevance: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID); that is using respectively their ratio or their difference. To evaluate the classification results of this method with the others % TODO other/others depending on having applied or not KPCA
 	, it has been set to select $15$ features, that for the two schemas are respectively:
 	\begin{itemize}
 		\item \textbf{MIQ}: status, foreign\_worker, other\_installment\_plans\_2, purpose\_2, credit\_history, property, savings, housing\_1, personal\_status\_sex\_1, other\_installment\_plans\_1, other\_debtors\_1, other\_debtors\_2, age, number\_credits, installment\_rate,
 		\item \textbf{MID}: status, foreign\_worker, credit\_history, purpose\_2, savings, housing\_2, other\_installment\_plans\_3, personal\_status\_sex\_1, other\_debtors\_1, amount, duration, number\_credits, other\_debtors\_2, age, installment\_rate
 	\end{itemize}
-	As can be seen, most of the features selected with the two selections are the same.
-	
-	
-	
-	-correlazione variabili
-	-t-SNE
-	-eliminare/aggregare variabili correlate 
-	-pca per capire quali sono le feature più importanti
-	-lineare
-	-kpca
-	-eventualmente di nuovo correlazione tra variabili
+	As can be seen, most of the features selected with the two methods are the same.
+	\section{Cross validation pipeline}
+	At this point, the classification models can be trained to be able to detect good and bad creditors. However, each model can depend on one or more hyperparameters, that are the parameters that control the training process in the machine learning algorithm. In order to choose the best values that make the models to outperform in the desired task, a cross validation process is needed. \\
+	First of all, $5$ different training sets are prepared, one for each dimensionality reduction technique discussed above (Section \ref{dim_reduction}): PCA, KernelPCA, mRMR with method MIQ and mRMR with method MID, plus the one without dimensionality reduction.\\
+	Then, for each of those training sets, a stratified $10$-fold cross validation is run for each combination of dataset balancing technique (Section \ref{dataset_balancing}) and classification algorithm (Section \ref{classification}). 
+	In particular, a few comments are necessary:
+	\begin{enumerate}
+		\item the $10$-fold has to be stratified because at each step the validation fold, used to test performances, must have the same characteristics of the test set;
+		\item for the same reason, the dataset balancing technique is applied only to the $9$ fold used for training;
+		\item unfortunately, the same was not possible for the dimensionality reduction techniques, since the mRMR method has not been implemented to be part of a pipeline, thus they have all been applied to the entire training set (but not to the test set). Assuming that the $10$ fold are sampled in a random way, at each step the $10^{th}$ one should not have such different characteristics with respect to the the other ones;
+		\item using a k-fold cross validation instead of the classical train-validation split of the training set, is helpful in trying to reduce overfitting.
+	\end{enumerate}
+	During the cross validation step, the chosen metric to be maximized is the F1 score. Given $\mathrm{precision} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}$ and $\mathrm{recall} =  \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$:
+	\begin{equation}\label{f1}	
+		F1 = 2 * \frac{\mathrm{precision}*\mathrm{recall}}{\mathrm{precis	ion}+\mathrm{recall}}
+	\end{equation}
+	It is probably the best score for this kind of problems, because the accuracy may not be the good choice when dealing with an imbalanced dataset, since it just counts the correctly classified points with respect to all the points, without taking into account the label imbalance. The F1 score, instead, enforces the models to correctly classify the minority class points.
 
+	\section{Dataset balancing} \label{dataset_balancing}
+	Dealing with a dataset where the class labels' distribution is imbalanced [Figure \ref{fig:1}] may lead to poor performing classification algorithms, because most of them assume that class labels are equally distributed and that an be problematic mostly in cases like this one, where we are more interested in detecting the minority class than the majority one: we want the algorithms to be able to properly detect the bad creditors.\\
+	For this reason, three main techniques have been investigated: oversampling, undersampling and SMOTE.
+	\subsection{Undersampling}
+	With this technique, given a training set with $N$ points in the minority class and $M$ in the majority one ($M > N$), in order to balance the class labels' distribution, $N$ points are randomly sampled from the majority class. The main downside is that we are removing samples from the original dataset, possibly taking away useful information to correctly classify data.
+	\subsection{Oversampling}
+	This technique aims to reach a uniform distribution in class labels by randomly sampling data from the minority class, until its number of samples matches the one of the majority class. Of course there is no longer the problem of loosing information, however, given the big gap between the two labels, overfitting is more likely to occur. Especially with this dataset, whose minority class has already been oversampled from $5\%$ to $30\%$ as reported by Grömping \cite{gromping}.
+	\subsection{SMOTE}
+	Synthetic Minority Oversampling Technique (SMOTE) is again an oversampling technique, but instead of randomly sampling points from the minority class, they are linearly combined to synthetically generate new points. In order to augment data, for each data point the minority class, its k nearest neighbours (e.g. $5$) are found and, among them, one is randomly selected. The new point is generated as a convex combination of the two data points. \\
+	Although this can be a good way to balance the dataset without incurring in overfitting, it is designed to work only with continuous data. Indeed categorical features, even if properly encoded, have a fixed and limited amount of possible values; thus, it is likely that synthetically generated points would take inconsistent values. 
 	
-	\section{dataset balancing}
-		-oversampling
-		-undersampling
-		-smote
+	\section{Classification models} \label{classification}
+	\subsection{Decision Tree}
+	\subsection{Random Forest}
+	\subsection{Logistic Regression}
+	\subsection{Support Vector Machine}
+	\subsection{K Nearest Neighbours}
 	
-	\section{classificazione}
 	-logistic regression (also + regularization ridge or lasso)
 	-tree
 	-random forest (less simple to explain results)
