@@ -135,7 +135,7 @@ sorting=ynt
 	\begin{itemize}
 		\item the variable \textbf{installment\_rate} is the only one among the ordinal variables having a decreasing order, so its mapping has been inverted; thus now label \texttt{1} means $< 20$, label \texttt{2} means $\geq 20$ and $< 25$ and so on;
 		\item \textbf{credit\_history} and \textbf{purpose}'s mappings have been changed from $0 \rightarrow N-1$ to $1 \rightarrow N$;
-		\item in this kind of classification, the \emph{positive} class is the one we are more interested classify correctly, in this case the \texttt{bad} creditors. By default, the \emph{positive} class has label $1$, and the other, the \emph{negative}, has label $0$; thus, the class labels has been inverted.
+		\item in this kind of classification, the \emph{positive} class is the one we are more interested in correctly classifying, in this case the \texttt{bad} creditors. By convention, the \emph{positive} class has label $1$, and the other, the \emph{negative} one, has label $0$; thus, the class labels have been inverted.
 	\end{itemize}
 	In addition, all categorical variables have to be encoded in a different way with respect to the actual one ($1 \rightarrow N$). Indeed this encoding gives an arbitrary ranking to features that do not have one, and this is a problem when applying distance-based classification algorithms because those could potentially exploit this fictional structure created by the mapping itself.
 	\subsection{One hot encoding vs binary encoding}
@@ -274,7 +274,7 @@ sorting=ynt
 		\captionof{figure}{Scree plot of KPCA with four different kernels}
 		\label{fig:14}
 	\end{figure}
-	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points; in terms of this metric the best one seems to be \texttt{poly}, the polynomial kernel. However, by looking at their Scree plots [Figure \ref{fig:14}], they seems pretty similar both among them and with respect to the result of standard PCA [Figure \ref{fig:11}]: they all have an elbow in explained variance graph around $15$ principal components, and in that point the cumulative explained variance is around $85\%$ ($82\%$ for \texttt{rbf} kernel).
+	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points; in terms of this metric the best one seems to be \texttt{poly}, the polynomial kernel. However, by looking at their Scree plots [Figure \ref{fig:14}], they seem pretty similar both among them and with respect to the result of standard PCA [Figure \ref{fig:11}]: they all have an elbow in explained variance graph around $15$ principal components, and in that point the cumulative explained variance is around $85\%$ ($82\%$ for \texttt{rbf} kernel).
 	% TODO decidere se usarla in classificazione o no!
 	% TODO se usarla, dire che si prendono sempre 15 pc
 	
@@ -291,12 +291,12 @@ sorting=ynt
 	First of all, $5$ different training sets are prepared, one for each dimensionality reduction technique discussed above (Section \ref{dim_reduction}): PCA, KernelPCA, mRMR with method MIQ and mRMR with method MID, plus the one without dimensionality reduction.\\
 	Then, for each of those training sets, a stratified $10$-fold cross validation is run for each combination of dataset balancing technique (Section \ref{dataset_balancing}) and classification algorithm (Section \ref{classification}). 
 	In particular, a few comments are necessary:
-	\begin{enumerate}
+	\begin{itemize}
 		\item the $10$-fold has to be stratified because at each step the validation fold, used to test performances, must have the same characteristics of the test set;
-		\item for the same reason, the dataset balancing technique is applied only to the $9$ fold used for training;
+		\item for the same reason, the dataset balancing technique is applied only to the $9$ folds used for training;
 		\item unfortunately, the same was not possible for the dimensionality reduction techniques, since the mRMR method has not been implemented to be part of a pipeline, thus they have all been applied to the entire training set (but not to the test set). Assuming that the $10$ fold are sampled in a random way, at each step the $10^{th}$ one should not have such different characteristics with respect to the the other ones;
 		\item using a k-fold cross validation instead of the classical train-validation split of the training set, is helpful in trying to reduce overfitting.
-	\end{enumerate}
+	\end{itemize}
 	During the cross validation step, the chosen metric to be maximized is the F1 score. Given $\mathrm{precision} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}$ and $\mathrm{recall} =  \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$:
 	\begin{equation}\label{f1}	
 		F1 = 2 * \frac{\mathrm{precision}*\mathrm{recall}}{\mathrm{precis	ion}+\mathrm{recall}}
@@ -311,13 +311,27 @@ sorting=ynt
 	\subsection{Oversampling}
 	This technique aims to reach a uniform distribution in class labels by randomly sampling data from the minority class, until its number of samples matches the one of the majority class. Of course there is no longer the problem of loosing information, however, given the big gap between the two labels, overfitting is more likely to occur. Especially with this dataset, whose minority class has already been oversampled from $5\%$ to $30\%$ as reported by Grömping \cite{gromping}.
 	\subsection{SMOTE}
-	Synthetic Minority Oversampling Technique (SMOTE) is again an oversampling technique, but instead of randomly sampling points from the minority class, they are linearly combined to synthetically generate new points. In order to augment data, for each data point the minority class, its k nearest neighbours (e.g. $5$) are found and, among them, one is randomly selected. The new point is generated as a convex combination of the two data points. \\
-	Although this can be a good way to balance the dataset without incurring in overfitting, it is designed to work only with continuous data. Indeed categorical features, even if properly encoded, have a fixed and limited amount of possible values; thus, it is likely that synthetically generated points would take inconsistent values. 
+	Synthetic Minority Oversampling Technique (SMOTE) is again an oversampling technique, but instead of randomly sampling points from the minority class, they are linearly combined to synthetically generate new points. In order to augment data, for each data point in the minority class, its k nearest neighbours (e.g. $5$) are found and, among them, one is randomly selected. The new point is generated as a convex combination of the two data points. \\
+	Although this can be a good way to balance the dataset without incurring in overfitting, it is designed to work only with continuous data. Indeed categorical features, even if properly encoded, have a fixed and limited amount of possible values; thus, it is likely that synthetically generated points would have inconsistent values. 
 	
-	\section{Classification models} \label{classification}
+	\section{Classification} \label{classification}
+	In this section, all the classification models trained with this dataset are investigated. As mentioned before, a $10$-fold cross validation is run to decide the best dimensionality reduction technique, balancing technique as well as the models' hyperparameters. 
 	\subsection{Decision Tree}
-	\subsection{Random Forest}
+	Decision tree is a very popular tool used both for classification and regression. At the basis, the idea is to divide the predictor space into $N$ non overlapping regions where the assumption is that in every region only one label is assigned, such that the prediction error is minimized with the lowest number of regions. Unfortunately, this procedure is computationally unfeasible, because the minimum amount of regions involved in the minimization process is equal to the number of training points. Thus, decision trees are built with a top-down greedy procedure, where at each step the best current split is done and so on until in each region there is only one label. \\
+	However, the main disadvantage of this model is that it is prone to overfitting. Indeed, if the tree is built until no further split can be done, the model ends up describing the training set itself without a predicting goal. For this reason, two main strategies have been applied:
+	\begin{itemize}
+		\item one way is to set some hyperparameters of the problem to limit this phenomena, such as the depth of the tree, the minimum number of samples in leaves or the minimum number of samples to split a node. They can be expressed both in absolute values or as a fraction of the whole training set.
+		\item another way is to do the other way around: the tree is firstly built until every split can be done, then it is pruned by progressively substituting subtrees with leaves. The objective is to minimize the error function as before, but it now has a regularization term that consists in the number of leaves of the node weighted for an hyperparameter $\alpha$.
+	\end{itemize}
+	
+	\subsection{Tree-based ensemble methods}
+	Another way to overcome overfitting and variance and improve generalization of decision tree classifier, is by applying an ensemble method. The idea is that combining multiple weak models (trees in this case) can improve results with respect to keeping a single model. In classification, the final prediction of a new point is the majority of the models' predictions. Here two procedures are taken into account.
+	\subsubsection{Bagging}
+	With this method, $B$ sets of point are generated by taking samples (with repetition) from the original training set (this procedure is called \emph{Bootstrap}), then from each one a tree is built as explained before.
+	\subsubsection{Random Forest}
+	Random forest, instead, is an improvement of bagging. Indeed, it builds decision trees on bootstrapped training samples, but in addition, each time a split has to be done in the tree building procedure, only a limited and random selection of features is considered.
 	\subsection{Logistic Regression}
+	
 	\subsection{Support Vector Machine}
 	\subsection{K Nearest Neighbours}
 	
