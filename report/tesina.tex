@@ -251,7 +251,7 @@ sorting=ynt
 	\begin{itemize}
 		\item the \textbf{minimum error} formulation, that finds a solution to the problem
 		\begin{equation}
-\underset{U\in \mathbb{R}^{n,d}}{\mathrm{argmin}}\, \sum_{i}^{m}\norm{\va{x}_i - UU^T\va{x}_i}^2_2, \quad \mathrm{subject\ to\ } U^TU=\mathbb{I}
+\underset{U\in \mathbb{R}^{n,d}}{\mathrm{argmin}}\, \sum_{i}^{m}\norm{\va{x}_i - UU^T\va{x}_i}^2_2 \quad \mathrm{subject\ to\ } U^TU=\mathbb{I}
 		\end{equation}
 	The idea is that we want minimise the error, that is the information we loose, in projecting the data in a lower dimensional space. Indeed, the error is computed between each original point $\va{x}$ and its reconstruction $\hat{\va{x}}=UU^T\va{x}$. \\
 	Assuming that the data points are centered ($\va{\mu}=\va{0})$, and given the matrix of data points $X \in \mathbb{R}^{m,d}$, $m$ number of points and $d$ number of features, the solution to find the linear mapping (the orthogonal matrix $U^T$) is finding the $n$ eigenvectors ($\va{u}_1,\va{u}_2,...,\va{u}_n$) corresponding to the $n$ biggest eigenvalues ($\lambda_1\ge \lambda_2\ge ... \ge \lambda_n \ge ... \ge \lambda_d$) of the covariance matrix of $X$. Those eigenvectors (the \emph{principal components}) are the column of the matrix $U$, and the sum of the remaining eigenvalues is the error done in projecting the data in low dimensional space. However, since the data distribution is not known, the covariance matrix is estimated through the scatter matrix, also called sample covariance matrix
@@ -348,10 +348,14 @@ sorting=ynt
 	\begin{equation}
 		H = \{ \vec{x}\mapsto \sigma(\langle\vec{x},\vec{\beta}\rangle) : \vec{\beta}\in\mathbb{R}^d\}
 	\end{equation}
-	Where $H(\vec{x})$ is a real value in the interval $(0,1)$ and it corresponds to the probability of the point $\vec{x}$ to have label $y = 1$ (viceversa, the probability to have label $y=0$ is $1-H$). However, since in classification we want the model to predict a label, a threshold is needed to decide whether the outcome is label $0$ or $1$. \\
-	In this model, the hyperparameters to be tuned involve the regularization term whose role is to avoid overfitting and simplify the model itself. Here two kind of regularizations are considered (\texttt{penalty}): the Ridge regression ($\lVert{\vec{\beta}}\rVert^2_2$), or the LASSO one($\lVert{\vec{\beta}}\rVert_1$); both are weighted for $\lambda = \frac{1}{C}$ (in this case \texttt{C} is the hyperparameter tuned in cross-validation).
+	Where $H(\vec{x})$ is a real value in the interval $(0,1)$ and it corresponds to the probability of the point $\vec{x}$ to have label $y = 1$ (viceversa, the probability to have label $y=0$ is $1-H(\vec{x})$). However, since in classification we want the model to predict a label, a threshold is needed to decide whether the outcome is label $0$ or $1$. \\
+	In this model, the hyperparameters to be tuned involve the regularization term used in parameters' optimization, whose role is to avoid overfitting and simplify the model itself. Here two kind of regularizations are considered (via the \texttt{penalty} hyperparameter): the Ridge regression ($\lambda\lVert{\vec{\beta}}\rVert^2_2$), or the LASSO one ($\lambda\lVert{\vec{\beta}}\rVert_1$), where $\lambda = \frac{1}{C}$ (\texttt{C} is the other hyperparameter tuned in cross-validation).
 	\subsection{Support Vector Machine}
-	
+	Support Vector Machine (SVM) is a supervised learning model used for regression and classification, specifically, it is particularly useful for binary classification. Indeed, its goal is to find an hyperplane separating points of the two classes in the best way possible. This can be done by maximizing the margin (\emph{Hard margin SVM}), that is the minimal distance of the hyperplane with the data points, but it is feasible only if the samples are linearly separable, which is a very unrealistic assumption. Therefore, a more realistic approach is used (\emph{Soft margin SVM}) that still aims to find the best hyperplane, but allowing the model to make some mistakes. Eventually the problem becomes:
+	\begin{equation}
+		\underset{\vec{w}, b}{\mathrm{argmin}}\, \frac{1}{2}\lVert\vec{w}\rVert_2^2 + C\sum_{i}\xi_i \quad \mathrm{subject\ to\ y_i[\langle\vec{w},\vec{x}\rangle+b]\ge1-\xi_i \mathrm{\ and\ } \xi_i\ge0}
+	\end{equation}
+	where $\langle\vec{w},\vec{x}\rangle+b = 0$ is the hyperplane separating data points $(\vec{x}_i,y_i)$, and $\xi_i$ are the so called slack variables that are introduced to loosen the assumption of linear separability, weighted for the hyperparameter C.
 	\subsection{K-Nearest Neighbours}
 	
 	-logistic regression (also + regularization ridge or lasso)
@@ -359,9 +363,8 @@ sorting=ynt
 	-random forest (less simple to explain results)
 	-svm (linear, rbf, polinomial, sigmoid)
 	-knn
-	-fda
-	-qda?
-	-lda? bayes?
+	-fda https://pypi.org/project/kfda/
+	-qda lda bayes spiegare che non valgono le ipotesi ?
 	-eventually simple mlp
 	
 	\section{Classification results}
