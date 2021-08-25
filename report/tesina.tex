@@ -372,6 +372,13 @@ sorting=ynt
 	where $\gamma$ (\texttt{gamma}), $r$ (\texttt{coef0}) and $d$ (\texttt{degree}), together with the kind of \texttt{kernel} and \texttt{C} are the hyperparameters to be tuned.
 	
 	\subsection{K-Nearest Neighbours}
+	K-Nearest Neighbours is a very simple classification and regression supervised model. Basically, when a new point has to be classified, it is assigned to the most common class (in case of classification) among $k$ nearest points in the training set; while in case of regression, the average of the $k$ neighbours' values is computed. \\ 
+	$k$ (\texttt{n\_neighbors}) is of course the most important hyperparameter to tune, and it is chosen among the odd values, since in binary classification this ensures that only one label will have the maximum number of votes. Then, the other tuned hyperparameters are:
+	\begin{itemize}
+		\item \texttt{p}, that is the power parameter of the Minkowski distance metric $(\sum_{i}^{d}| x_i- y_i|^p)^{1/p}$, being $d$ the number of features and $\vec{x}$ and $\vec{y}$ the points among which the distance is to be computed. For instance $p=1$ is the Manhattan distance, and $p=2$ is the Euclidean distance;
+		\item \texttt{weights}, by which it is possible to weight the votes basing on point's inverse of distance, in order to weight more nearest points with respect to far ones.
+	\end{itemize}
+	It is a completely data-driven model, since it does not require any training and its prediction strictly depends on training data; however, it might take longer with respect to other models to give a prediction, and it requires a significant amount of memory to keep all training points.
 	\subsection{Fisher Discriminant Analysis}
 	
 	
