@@ -1,4 +1,5 @@
 \documentclass[letterpaper]{article}
+\let\oldvec\vec
 \usepackage[bottom=0.7in, left=.5in, right=1in, top=.7in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -274,7 +275,7 @@ sorting=ynt
 		\captionof{figure}{Scree plot of KPCA with four different kernels}
 		\label{fig:14}
 	\end{figure}
-	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points; in terms of this metric the best one seems to be \texttt{poly}, the polynomial kernel. However, by looking at their Scree plots [Figure \ref{fig:14}], they seem pretty similar both among them and with respect to the result of standard PCA [Figure \ref{fig:11}]: they all have an elbow in explained variance graph around $15$ principal components, and in that point the cumulative explained variance is around $85\%$ ($82\%$ for \texttt{rbf} kernel).
+	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection\\.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points; in terms of this metric the best one seems to be \texttt{poly}, the polynomial kernel. However, by looking at their Scree plots [Figure \ref{fig:14}], they seem pretty similar both among them and with respect to the result of standard PCA [Figure \ref{fig:11}]: they all have an elbow in explained variance graph around $15$ principal components, and in that point the cumulative explained variance is around $85\%$ ($82\%$ for \texttt{rbf} kernel).
 	% TODO decidere se usarla in classificazione o no!
 	% TODO se usarla, dire che si prendono sempre 15 pc
 	
@@ -351,12 +352,28 @@ sorting=ynt
 	Where $H(\vec{x})$ is a real value in the interval $(0,1)$ and it corresponds to the probability of the point $\vec{x}$ to have label $y = 1$ (viceversa, the probability to have label $y=0$ is $1-H(\vec{x})$). However, since in classification we want the model to predict a label, a threshold is needed to decide whether the outcome is label $0$ or $1$. \\
 	In this model, the hyperparameters to be tuned involve the regularization term used in parameters' optimization, whose role is to avoid overfitting and simplify the model itself. Here two kind of regularizations are considered (via the \texttt{penalty} hyperparameter): the Ridge regression ($\lambda\lVert{\vec{\beta}}\rVert^2_2$), or the LASSO one ($\lambda\lVert{\vec{\beta}}\rVert_1$), where $\lambda = \frac{1}{C}$ (\texttt{C} is the other hyperparameter tuned in cross-validation).
 	\subsection{Support Vector Machine}
-	Support Vector Machine (SVM) is a supervised learning model used for regression and classification, specifically, it is particularly useful for binary classification. Indeed, its goal is to find an hyperplane separating points of the two classes in the best way possible. This can be done by maximizing the margin (\emph{Hard margin SVM}), that is the minimal distance of the hyperplane with the data points, but it is feasible only if the samples are linearly separable, which is a very unrealistic assumption. Therefore, a more realistic approach is used (\emph{Soft margin SVM}) that still aims to find the best hyperplane, but allowing the model to make some mistakes. Eventually the problem becomes:
+	Support Vector Machine (SVM) is a supervised learning model used for regression and classification, specifically, it is particularly useful for binary classification. Indeed, its goal is to find an hyperplane separating points of the two classes in the best way possible. This can be done by maximizing the margin (\emph{Hard margin SVM}), that is the minimal distance of the hyperplane with the data points. However it is feasible only if the samples are linearly separable, which is a very unrealistic assumption. Therefore, a more realistic approach is used (\emph{Soft margin SVM}) that still aims to find the best hyperplane, but allowing the model to make some mistakes. Eventually the problem becomes:
 	\begin{equation}
-		\underset{\vec{w}, b}{\mathrm{argmin}}\, \frac{1}{2}\lVert\vec{w}\rVert_2^2 + C\sum_{i}\xi_i \quad \mathrm{subject\ to\ y_i[\langle\vec{w},\vec{x}\rangle+b]\ge1-\xi_i \mathrm{\ and\ } \xi_i\ge0}
+		\underset{\vec{w}, b}{\mathrm{argmin}}\, \frac{1}{2}\lVert\vec{w}\rVert_2^2 + C\sum_{i}\xi_i \quad \mathrm{subject\ to\ }y_i[\langle \vec{w},\vec{x}\rangle+b]\ge1-\xi_i \mathrm{\ and\ } \xi_i\ge0
 	\end{equation}
-	where $\langle\vec{w},\vec{x}\rangle+b = 0$ is the hyperplane separating data points $(\vec{x}_i,y_i)$, and $\xi_i$ are the so called slack variables that are introduced to loosen the assumption of linear separability, weighted for the hyperparameter C.
+	where $\langle\vec{w},\vec{x}\rangle+b = 0$ is the hyperplane separating data points $(\vec{x}_i,y_i)$, and $\xi_i$ are the so called slack variables that are introduced to loosen the assumption of linear separability, weighted for the hyperparameter \texttt{C}.\\
+	As previously done in Kernel PCA, also SVM can be used with kernels, that means applying SVM in an higher dimensional space where points are more likely to be linearly separable, to find eventually an hypercurve separating points in feature space. This is possible because of the dual formulation of SVM that reduces the problem to:
+	\begin{equation}
+		\underset{\vec{\alpha}}{\mathrm{argmax}}\, -\frac{1}{2}\sum_{i,j}\alpha_i\alpha_jy_iy_j\langle\vec{x_i},\vec{x_j}\rangle + \sum_{i}\alpha_i \quad \mathrm{subject\ to\ } \sum_{i}\alpha_iy_i=0 \mathrm{\ and\ } \alpha_i\in[0,C]
+	\end{equation}
+	where the scalar product $\langle\vec{x_i},\vec{x_j}\rangle$ can be easily substituted with $k(x_i,x_j)$, being $k$ the kernel function that represents the inner product in an higher dimensional Hilbert space. \\
+	As in KPCA, the possible values for \texttt{kernel} parameter are:
+	\begin{itemize}
+		\item \texttt{linear}: no kernel is used, it is simply the scalar product $\langle\vec{x_i},\vec{x_j}\rangle$
+		\item \texttt{poly}: the polynomial kernel $(\gamma\langle\vec{x_i},\vec{x_j}\rangle+r)^d$
+		\item \texttt{rbf}: the radial basis function kernel $e^{-\gamma\lVert x_i+x_j\rVert^2}$
+		\item \texttt{sigmoid}: $\tanh(\gamma\langle\vec{x_i},\vec{x_j}\rangle+r)$
+	\end{itemize}
+	where $\gamma$ (\texttt{gamma}), $r$ (\texttt{coef0}) and $d$ (\texttt{degree}), together with the kind of \texttt{kernel} and \texttt{C} are the hyperparameters to be tuned.
+	
 	\subsection{K-Nearest Neighbours}
+	\subsection{Fisher Discriminant Analysis}
+	
 	
 	-logistic regression (also + regularization ridge or lasso)
 	-tree
