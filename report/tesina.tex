@@ -351,7 +351,7 @@ sorting=ynt
 	\end{equation}
 	Where $H(\vec{x})$ is a real value in the interval $(0,1)$ and it corresponds to the probability of the point $\vec{x}$ to have label $y = 1$ (viceversa, the probability to have label $y=0$ is $1-H(\vec{x})$). However, since in classification we want the model to predict a label, a threshold is needed to decide whether the outcome is label $0$ or $1$. \\
 	In this model, the hyperparameters to be tuned involve the regularization term used in parameters' optimization, whose role is to avoid overfitting and simplify the model itself. Here two kind of regularizations are considered (via the \texttt{penalty} hyperparameter): the Ridge regression ($\lambda\lVert{\vec{\beta}}\rVert^2_2$), or the LASSO one ($\lambda\lVert{\vec{\beta}}\rVert_1$), where $\lambda = \frac{1}{C}$ (\texttt{C} is the other hyperparameter tuned in cross-validation).
-	\subsection{Support Vector Machine}
+	\subsection{Support Vector Machine} \label{svm}
 	Support Vector Machine (SVM) is a supervised learning model used for regression and classification, specifically, it is particularly useful for binary classification. Indeed, its goal is to find an hyperplane separating points of the two classes in the best way possible. This can be done by maximizing the margin (\emph{Hard margin SVM}), that is the minimal distance of the hyperplane with the data points. However it is feasible only if the samples are linearly separable, which is a very unrealistic assumption. Therefore, a more realistic approach is used (\emph{Soft margin SVM}) that still aims to find the best hyperplane, but allowing the model to make some mistakes. Eventually the problem becomes:
 	\begin{equation}
 		\underset{\vec{w}, b}{\mathrm{argmin}}\, \frac{1}{2}\lVert\vec{w}\rVert_2^2 + C\sum_{i}\xi_i \quad \mathrm{subject\ to\ }y_i[\langle \vec{w},\vec{x}\rangle+b]\ge1-\xi_i \mathrm{\ and\ } \xi_i\ge0
@@ -380,19 +380,15 @@ sorting=ynt
 	\end{itemize}
 	It is a completely data-driven model, since it does not require any training and its prediction strictly depends on training data; however, it might take longer with respect to other models to give a prediction, and it requires a significant amount of memory to keep all training points.
 	\subsection{Fisher Discriminant Analysis}
-	With the actual dataset, Linear Discriminant Analysis (LDA) and Quadratic Discriminant Analysis (QDA) can not be applied. They both aims to find a combination of features (linear or quadratic) to separate classes. However, the assumption for both of them is the multivariate normality, that means that each feature should be normally distributed. It can be clearly seen from Figure \ref{fig:2} that this is not the case. Furthermore, a Henze-Zirkler Multivariate Normality Test (\texttt{multivariate\_normality} from the \texttt{pingouin} library\footnote{documentation at \url{https://pingouin-stats.org/generated/pingouin.multivariate_normality.html}}) has been performed: it returns the \emph{p-value} related to the null hypothesis that the variables follow a multivariate normal distribution, in this case it is less than the default threshold $\alpha = 0.05$, that means that the null hypothesis is rejected.
-	\par On the other hand, the Fisher Discriminant Analysis, that actually is a special case of LDA, do not impose any assumption on data distribution. Its goal is to find a lower dimensional space where points are linearly separable
-	
-	
-	
-	-logistic regression (also + regularization ridge or lasso)
-	-tree
-	-random forest (less simple to explain results)
-	-svm (linear, rbf, polinomial, sigmoid)
-	-knn
-	-fda https://pypi.org/project/kfda/
-	-qda lda bayes spiegare che non valgono le ipotesi ?
-	-eventually simple mlp
+	With the actual dataset, Linear Discriminant Analysis (LDA) and Quadratic Discriminant Analysis (QDA) can not be applied. They both aim to find a combination of features (linear or quadratic) with the goal to separate classes. However, the assumption for both is the multivariate normality, that means that each feature of the dataset should be normally distributed. It can be clearly seen from Figure \ref{fig:2} that this is not the case. Furthermore, a Henze-Zirkler Multivariate Normality Test (\texttt{multivariate\_normality} from the \texttt{pingouin} library\footnote{documentation at \url{https://pingouin-stats.org/generated/pingouin.multivariate_normality.html}}) has been performed: it returns the \emph{p-value} related to the null hypothesis that the variables follow a multivariate normal distribution, in this case it is much lower than the default threshold $\alpha = 0.05$, that means that the null hypothesis is rejected.
+	\par On the other hand, the Fisher Discriminant Analysis, that actually is a special case of LDA, do not impose any assumption on data distribution. Its goal is to find a lower dimensional space where points are linearly separable, thus they can be better classified. The idea has some similarities with PCA, indeed FDA tries to find a space $V$ where the projected data points have maximum distance among the class means and the minimum class variances. Practically the problem becomes 
+	\begin{equation}
+		\underset{V}{\mathrm{argmax}}\, \frac{det(V^TS_BV)}{det(V^TS_WV)}
+	\end{equation}
+	being $S_B$ and $S_W$ the matrices measuring respectively the separation between the means of classes before projection and the sum of the class scatter matrices. Eventually it turns to be finding the eigenvectors of matrix $S_W^{-1}S_B$ that are at most $c-1$, where $c$ is the number of classes.
+	Unlike PCA, this method is supervised and has a limitation on the lower dimensional space' dimension.
+	\\ This technique has not been implemented by \texttt{sklearn} library, but an implementation from Kawin Nikomborirak\footnote{documentation at: \url{https://pypi.org/project/kfda/}} is distributed in \texttt{kfda} library, based on Ghojogh \emph{et al.} paper \cite{ghojogh2019fisher}. This library offers also the kernel extension of FDA algorithm, and uses \texttt{scikit-learn} interface, thus giving the possibility to use the same methods and to perform grid search to tune parameters. Since the number of components of the lower dimensional space is fixed to $1 = c-1$, the hyperparameters to be tuned are the same discussed in SVM (Section \ref{svm}) regarding the \texttt{kernel} type and their related constants.
+	% TODO controlla che gli argomenti dei kernel li posso mettere comodamente nel grid search
 	
 	\section{Classification results}
 	-per ogni combinazione (dim-reduction - algoritmo) fare ROC, accuracy, confusion matrix, recall, precision, F1 (armonic mean between precision and recall)
@@ -404,6 +400,7 @@ sorting=ynt
 	\printbibliography
 	\nocite{MohriRostamizadehTalwalkar18}
 	\nocite{understandingml}
+	\nocite{ghojogh2019fisher}
 	% TODO use \nocite{key} to include in the references :
 	% - libro da cui ho guardato la PCA ?
 	\addcontentsline{toc}{section}{References}
