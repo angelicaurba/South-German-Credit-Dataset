@@ -380,6 +380,9 @@ sorting=ynt
 	\end{itemize}
 	It is a completely data-driven model, since it does not require any training and its prediction strictly depends on training data; however, it might take longer with respect to other models to give a prediction, and it requires a significant amount of memory to keep all training points.
 	\subsection{Fisher Discriminant Analysis}
+	With the actual dataset, Linear Discriminant Analysis (LDA) and Quadratic Discriminant Analysis (QDA) can not be applied. They both aims to find a combination of features (linear or quadratic) to separate classes. However, the assumption for both of them is the multivariate normality, that means that each feature should be normally distributed. It can be clearly seen from Figure \ref{fig:2} that this is not the case. Furthermore, a Henze-Zirkler Multivariate Normality Test (\texttt{multivariate\_normality} from the \texttt{pingouin} library\footnote{documentation at \url{https://pingouin-stats.org/generated/pingouin.multivariate_normality.html}}) has been performed: it returns the \emph{p-value} related to the null hypothesis that the variables follow a multivariate normal distribution, in this case it is less than the default threshold $\alpha = 0.05$, that means that the null hypothesis is rejected.
+	\par On the other hand, the Fisher Discriminant Analysis, that actually is a special case of LDA, do not impose any assumption on data distribution. Its goal is to find a lower dimensional space where points are linearly separable
+	
 	
 	
 	-logistic regression (also + regularization ridge or lasso)
