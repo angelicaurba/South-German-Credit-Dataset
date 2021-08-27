@@ -387,9 +387,8 @@ sorting=ynt
 	\end{equation}
 	being $S_B$ and $S_W$ the matrices measuring respectively the separation between the means of classes before projection and the sum of the class scatter matrices. Eventually it turns to be finding the eigenvectors of matrix $S_W^{-1}S_B$ that are at most $c-1$, where $c$ is the number of classes.
 	Unlike PCA, this method is supervised and has a limitation on the lower dimensional space' dimension.
-	\\ This technique has not been implemented by \texttt{sklearn} library, but an implementation from Kawin Nikomborirak\footnote{documentation at: \url{https://pypi.org/project/kfda/}} is distributed in \texttt{kfda} library, based on Ghojogh \emph{et al.} paper \cite{ghojogh2019fisher}. This library offers also the kernel extension of FDA algorithm, and uses \texttt{scikit-learn} interface, thus giving the possibility to use the same methods and to perform grid search to tune parameters. Since the number of components of the lower dimensional space is fixed to $1 = c-1$, the hyperparameters to be tuned are the same discussed in SVM (Section \ref{svm}) regarding the \texttt{kernel} type and their related constants.
-	% TODO controlla che gli argomenti dei kernel li posso mettere comodamente nel grid search
-	
+	\\ This technique has not been implemented by \texttt{sklearn} library, but an implementation from Kawin Nikomborirak\footnote{documentation at: \url{https://pypi.org/project/kfda/}} is distributed in \texttt{kfda} library, based on Ghojogh \emph{et al.} paper \cite{ghojogh2019fisher}. This library offers also the kernel extension of FDA algorithm, and uses \texttt{scikit-learn} interface, thus giving the possibility to use the same methods. Since the number of components of the lower dimensional space is fixed to $1 = c-1$, the hyperparameter to be tuned is only the \texttt{kernel} type; unfortunately, kernel's parameters can not be tuned easily with the actual implementation of this function, thus the default ones provided by \texttt{sklearn} are used.
+
 	\section{Classification results}
 	-per ogni combinazione (dim-reduction - algoritmo) fare ROC, accuracy, confusion matrix, recall, precision, F1 (armonic mean between precision and recall)
 	-istogrammi ? 
