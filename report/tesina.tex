@@ -1,6 +1,6 @@
 \documentclass[letterpaper]{article}
 \let\oldvec\vec
-\usepackage[bottom=0.7in, left=.5in, right=1in, top=.7in]{geometry}
+\usepackage[bottom=0.7in, left=.5in, right=.7in, top=.7in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
@@ -25,7 +25,7 @@ sorting=ynt
 \lhead{Data Spaces, a.y. 2020/2021}
 
 \begin{document}
-	\title{Tesina}
+	\title{South German Credit Dataset Analysis}
 	\author{Angelica Urbanelli S271114}
 	\date{Data Spaces, a.y. 2020/2021}
 	\maketitle
@@ -34,6 +34,7 @@ sorting=ynt
 	
 	\newpage 
 	\section{Introduction}
+	%TODO scrivere 
 	-spiegare il problema
 	importanza di distinguere buoni e cattivi pagatori
 	statistiche?
@@ -385,7 +386,7 @@ sorting=ynt
 	\end{itemize}
 	It is a completely data-driven model, since it does not require any training and its prediction strictly depends on training data; however, it might take longer with respect to other models to give a prediction, and it requires a significant amount of memory to keep all training points.
 	\subsection{Fisher Discriminant Analysis}
-	With the actual dataset, Linear Discriminant Analysis (LDA) and Quadratic Discriminant Analysis (QDA) can not be applied. They both aim to find a combination of features (linear or quadratic) with the goal to separate classes. However, the assumption for both is the multivariate normality, that means that each feature of the dataset should be normally distributed. It can be clearly seen from Figure \ref{fig:2} that this is not the case. Furthermore, a Henze-Zirkler Multivariate Normality Test (\texttt{multivariate\_normality} from the \texttt{pingouin} library\footnote{documentation at \url{https://pingouin-stats.org/generated/pingouin.multivariate_normality.html}}) has been performed: it returns the \emph{p-value} related to the null hypothesis that the variables follow a multivariate normal distribution, in this case it is much lower than the default threshold $\alpha = 0.05$, that means that the null hypothesis is rejected.
+	With the actual dataset, Linear Discriminant Analysis (LDA) and Quadratic Discriminant Analysis (QDA) can not be applied. They both aim to find a combination of features (linear or quadratic) with the goal of separating classes. However, the assumption for both is the multivariate normality, that means that each feature of the dataset should be normally distributed. It can be clearly seen from Figure \ref{fig:2} that this is not the case. Furthermore, a Henze-Zirkler Multivariate Normality Test (\texttt{multivariate\_normality} from the \texttt{pingouin} library\footnote{documentation at \url{https://pingouin-stats.org/generated/pingouin.multivariate_normality.html}}) has been performed: it returns the \emph{p-value} related to the null hypothesis that the variables follow a multivariate normal distribution, in this case it is much lower than the default threshold $\alpha = 0.05$, that means that the null hypothesis is rejected.
 	\par On the other hand, the Fisher Discriminant Analysis, that actually is a special case of LDA, do not impose any assumption on data distribution. Its goal is to find a lower dimensional space where points are linearly separable, thus they can be better classified. The idea has some similarities with PCA, indeed FDA tries to find a space $V$ where the projected data points have maximum distance among the class means and the minimum class variances. Practically the problem becomes 
 	\begin{equation}
 		\underset{V}{\mathrm{argmax}}\, \frac{det(V^TS_BV)}{det(V^TS_WV)}
@@ -395,7 +396,7 @@ sorting=ynt
 	\\ This technique has not been implemented by \texttt{sklearn} library, but an implementation from Kawin Nikomborirak\footnote{documentation at: \url{https://pypi.org/project/kfda/}} is distributed in \texttt{kfda} library, based on Ghojogh \emph{et al.} paper \cite{ghojogh2019fisher}. This library offers also the kernel extension of FDA algorithm, and uses \texttt{scikit-learn} interface, thus giving the possibility to use the same methods. Since the number of components of the lower dimensional space is fixed to $1 = c-1$, the hyperparameter to be tuned is only the \texttt{kernel} type; unfortunately, kernel's parameters can not be tuned easily with the actual implementation of this function, thus the default ones provided by \texttt{sklearn} are used.
 
 	\section{Classification results}
-	In this section, the results of the above algorithm are presented. They are trained on the whole training set with the tuned hyperparameters, and then evaluated on the test set. The metrics used to evaluate performances are the ones already mentioned in Section \ref{cv}: \emph{accuracy}, \emph{precision}, \emph{recall} and \emph{F1}. The \emph{confusion matrix} is also used to better visualize results.
+	In this section, the results of the above algorithm are presented. They are trained on the whole training set with the tuned hyperparameters, and then evaluated on the test set. The metrics used to evaluate performances are the ones already mentioned in Section \ref{cv}: \emph{accuracy}, \emph{precision}, \emph{recall} and \emph{F1}. The \emph{confusion matrix} is also used to better visualize results. \par
 	\begin{figure}[!ht]
 	\centering
 		\begin{minipage}[t]{0.45\textwidth}
@@ -430,7 +431,7 @@ sorting=ynt
 		\end{minipage}
 		\begin{minipage}[t]{0.45\textwidth}
 			\includegraphics[width=.85\textwidth]{images/confusion_RandomForestClassifier.png}
-			\setlength{\belowcaptionskip}{-10pt}
+			\setlength{\belowcaptionskip}{-5pt}
 			\captionof{figure}{Random Forest; no dimensionality reduction, undersampling, hyperparameters of the best Decision Tree with undersampling and \texttt{n\_estimators}=$100$}
 			\label{fig:20}
 		\end{minipage}
@@ -439,13 +440,14 @@ sorting=ynt
 		\end{minipage}
 		\begin{minipage}[t]{0.45\textwidth}
 			\includegraphics[width=.85\textwidth]{images/confusion_RandomForestClassifierWithPruning.png}
-			\setlength{\belowcaptionskip}{-10pt}
+			\setlength{\belowcaptionskip}{-5pt}
 			\captionof{figure}{Random Forest With Pruning; no dimensionality reduction, oversampling, [Figure \ref{fig:17}] hyperparameters and \texttt{n\_estimators}=$100$}
 			\label{fig:21}
 		\end{minipage}
 	\end{figure}
-	Surprisingly, for all classification algorithm, the best F1 scores during cross validation are obtained using the original training set without any dimensionality reduction technique applied. However, they only exceeded the other ones by a few percent, and generally all results were under $65\%$ of F1. Here [Figure \ref{fig:16}-\ref{fig:25}] the confusion matrices obtained from testing the best combination of dimensionality reduction, balancing technique and hyperparameters for each algorithm are shown.
-	\begin{figure}[!ht]
+	Surprisingly, for all classification algorithms, the best F1 scores during cross validation are obtained using the original training set without any dimensionality reduction technique applied. However, they only exceeded the other ones by a few percent, and generally all results were under $65\%$ of F1. Here [Figure \ref{fig:16}-\ref{fig:25}] the confusion matrices obtained from testing the best combinations of dimensionality reduction, balancing technique and hyperparameters for each algorithm are shown. For the same pipelines, in [Table \ref{tab:1}] the specific values of the aforementioned metrics are displayed.\\
+	In [Figures \ref{fig:26}-\ref{fig:27}] F1 of all tree-based models (Decision Trees, Bagging and Random Forest, all with and without pruning) is shown; specifically, the histograms are related to the case where no dimensionality reduction is used and they are divided with respect to the balancing method used. It can be observed that none between the balancing technique, the use of ensemble methods and the techniques used to reduce the depth of the trees seems to change the outcome significantly. \par
+	\begin{figure}[h]
 		\centering
 		\begin{minipage}[t]{0.45\textwidth}
 			\includegraphics[width=.85\textwidth]{images/confusion_SupportVectorMachine.png}
@@ -476,9 +478,10 @@ sorting=ynt
 			\label{fig:25}
 		\end{minipage}
 	\end{figure}
-	\begin{table}[!ht]
+	\begin{table}[h]
 		\centering
-			\begin{tabular}{l|c|c|c|c|}
+			\begin{tabular}{|l|c|c|c|c|}
+				\hline
 				&	\textbf{Accuracy}	& \textbf{Precision} &	\textbf{Recall	}&\textbf{F1}\\
 				\hline
 				\textbf{Decision Tree	}&0.685&	0.479&	0.583&	0.526\\
@@ -502,17 +505,83 @@ sorting=ynt
 				\textbf{Fisher Discriminant Analysis}&	0.720&	0.525&	0.700&	0.600\\
 				\hline
 			\end{tabular}
-			\caption{Evaluating metrics for all classification models' best pipelines and hyperparameters.}
+			\caption{\label{tab:1} Evaluating metrics for all classification models' best pipelines and hyperparameters.}
 	\end{table}
+	In addition, it is interesting to notice that both Decision Trees models end up to very similar results with respect to the usage of features. Indeed, in Figure [\ref{fig:32}] and [\ref{fig:33}] it is shown that both cross-validation procedures lead to using only $3$ features: (\texttt{status}, \texttt{duration}, \texttt{savings}) and (\texttt{status}, \texttt{duration}, \texttt{property}) respectively without and with pruning. \par
+	\begin{figure}[!h]
+	\centering
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/trees_undersampling.png}
+			\captionof{figure}{Tree-based models F1 when applying undersampling}
+			\label{fig:26}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/trees_oversampling.png}
+			\captionof{figure}{Tree-based models F1 when applying undersampling}
+			\label{fig:27}
+		\end{minipage}
+	\end{figure}
+	\newpage Finally, f1 [Figures \ref{fig:28}-\ref{fig:29}] and accuracy [Figures \ref{fig:30}-\ref{fig:31}] is computed for each pair dimensionality reduction - balancing techniques, for all classification algorithms. Like in cross-validation phase, still at test time, all methods perform better when using all features without any dimensionality reduction. Then, it seems that there is no difference between the two variations of mRMR algorithm that have basically the same performances; qhite the same happens for PCA and KPCA unless some cases (e.g. using FDA with oversampling). Considering all dimensionality reduction methods, (K)PCA performs better that mRMR. Globally, the best performances are given by Fisher Discriminant Analysis, specifically when applied to the original dataset with oversampling.
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=.9\textwidth]{images/DecisionTreeClassifier_features_importance.png}
+		\setlength{\abovecaptionskip}{-5pt}
+		\captionof{figure}{Decision Tree features importance}
+		\label{fig:32}
+	\end{figure}
 
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=.9\textwidth]{images/DecisionTreeClassifierWithPruning_features_importance.png}
+		\setlength{\abovecaptionskip}{-5pt}
+		\captionof{figure}{Decision Tree With Pruning features importance}
+		\label{fig:33}
+	\end{figure}
+	\begin{figure}[!h]
+		\centering
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/models_f1_with_undersampling.png}
+			\setlength{\abovecaptionskip}{-10pt}
+			\captionof{figure}{F1 score of models for each dimensionality reduction technique when applying undersampling.}
+			\label{fig:28}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/models_f1_with_oversampling.png}
+			\setlength{\abovecaptionskip}{-10pt}
+			\captionof{figure}{F1 score of models for each dimensionality reduction technique when applying oversampling.}
+			\label{fig:29}
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/models_accuracy_with_undersampling.png}
+			\setlength{\abovecaptionskip}{-10pt}
+			\captionof{figure}{Accuracy of models for each dimensionality reduction technique when applying undersampling.}
+			\label{fig:30}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/models_accuracy_with_oversampling.png}
+			\setlength{\abovecaptionskip}{-10pt}
+			\captionof{figure}{Accuracy of models for each dimensionality reduction technique when applying ovresampling.}
+			\label{fig:31}
+		\end{minipage}
+	\end{figure}
+	
+	\clearpage
+	\printbibliography
 	\nocite{MohriRostamizadehTalwalkar18}
 	\nocite{understandingml}
 	\nocite{ghojogh2019fisher}
 	% TODO use \nocite{key} to include in the references :
 	% - libro da cui ho guardato la PCA ?
-	\newpage
 	\addcontentsline{toc}{section}{References}
-	\printbibliography
 	
 	% TODO:
 	% - scrivere le funzioni + documentazione usata per ogni modello (?)
