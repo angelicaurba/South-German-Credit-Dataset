@@ -7,6 +7,8 @@
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{caption}
+%\captionsetup{justification   = raggedright,
+%	singlelinecheck = false}
 \usepackage{physics}
 \usepackage{amsfonts}
 \usepackage{amsmath, amssymb}
@@ -276,21 +278,18 @@ sorting=ynt
 		\label{fig:14}
 	\end{figure}
 	To compare those kernels, a grid search (5-fold cross validation, the default one for \texttt{sklearn.model\_selection\\.GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function) has been performed for each one to choose the best hyperparameters that minimize the mean squared error on the reconstruction of data points; in terms of this metric the best one seems to be \texttt{poly}, the polynomial kernel. However, by looking at their Scree plots [Figure \ref{fig:14}], they seem pretty similar both among them and with respect to the result of standard PCA [Figure \ref{fig:11}]: they all have an elbow in explained variance graph around $15$ principal components, and in that point the cumulative explained variance is around $85\%$ ($82\%$ for \texttt{rbf} kernel).
-	% TODO decidere se usarla in classificazione o no!
-	% TODO se usarla, dire che si prendono sempre 15 pc
 	
 	\subsection{mRMR}
-	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{documentation at: \url{https://pypi.org/project/pymrmr/}}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. The authors of the paper have investigated two ways to combine redundancy and relevance: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID); that is using respectively their ratio or their difference. To evaluate the classification results of this method with the others % TODO other/others depending on having applied or not KPCA
-	, it has been set to select $15$ features, that for the two schemas are respectively:
+	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{documentation at: \url{https://pypi.org/project/pymrmr/}}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. The authors of the paper have investigated two ways to combine redundancy and relevance: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID); that is using respectively their ratio or their difference. To evaluate the classification results of this method with the others, it has been set to select $15$ features, that for the two schemas are respectively:
 	\begin{itemize}
 		\item \textbf{MIQ}: status, foreign\_worker, other\_installment\_plans\_2, purpose\_2, credit\_history, property, savings, housing\_1, personal\_status\_sex\_1, other\_installment\_plans\_1, other\_debtors\_1, other\_debtors\_2, age, number\_credits, installment\_rate,
 		\item \textbf{MID}: status, foreign\_worker, credit\_history, purpose\_2, savings, housing\_2, other\_installment\_plans\_3, personal\_status\_sex\_1, other\_debtors\_1, amount, duration, number\_credits, other\_debtors\_2, age, installment\_rate
 	\end{itemize}
 	As can be seen, most of the features selected with the two methods are the same.
-	\section{Cross validation pipeline}
+	\section{Cross validation pipeline} \label{cv}
 	At this point, the classification models can be trained to be able to detect good and bad creditors. However, each model can depend on one or more hyperparameters, that are the parameters that control the training process in the machine learning algorithm. In order to choose the best values that make the models to outperform in the desired task, a cross validation process is needed. \\
 	First of all, $5$ different training sets are prepared, one for each dimensionality reduction technique discussed above (Section \ref{dim_reduction}): PCA, KernelPCA, mRMR with method MIQ and mRMR with method MID, plus the one without dimensionality reduction.\\
-	Then, for each of those training sets, a stratified $10$-fold cross validation (\texttt{GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function of \texttt{sklearn} library) is run for each combination of dataset balancing technique (Section \ref{dataset_balancing}) and classification algorithm (Section \ref{classification}). 
+	Then, for each of those training sets, a stratified $10$-fold cross validation (\texttt{GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function of \texttt{sklearn} library) is run for each combination of dataset balancing technique (Section \ref{dataset_balancing}) and classification algorithm (Section \ref{classification}) in order to find the best classification pipeline. 
 	In particular, a few comments are necessary:
 	\begin{itemize}
 		\item the $10$-fold has to be stratified because at each step the validation fold, used to test performances, must have the same characteristics of the test set;
@@ -298,10 +297,15 @@ sorting=ynt
 		\item unfortunately, the same was not possible for the dimensionality reduction techniques, since the mRMR method has not been implemented to be part of a pipeline, thus they have all been applied to the entire training set (but not to the test set). Assuming that the $10$ fold are sampled in a random way, at each step the $10^{th}$ one should not have such different characteristics with respect to the the other ones;
 		\item using a k-fold cross validation instead of the classical train-validation split of the training set, is helpful in trying to reduce overfitting.
 	\end{itemize}
-	During the cross validation step, the chosen metric to be maximized is the F1 score. Given $\mathrm{precision} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}$ and $\mathrm{recall} =  \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$:
-	\begin{equation}\label{f1}	
-		F1 = 2 * \frac{\mathrm{precision}*\mathrm{recall}}{\mathrm{precis	ion}+\mathrm{recall}}
-	\end{equation}
+	Given the following metrics
+	\begin{itemize}
+		\item $\mathrm{accuracy} = \frac{\mathrm{TP}+\mathrm{TN}}{\mathrm{TP}+\mathrm{FP}+\mathrm{TN}+\mathrm{FN}}$
+		\item $\mathrm{precision} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}$ 
+		\item $\mathrm{recall} =  \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}$
+		\item $\mathrm{F1} = 2 * \frac{\mathrm{precision}*\mathrm{recall}}{\mathrm{precis	ion}+\mathrm{recall}}$
+	\end{itemize}
+	where TP (\emph{True Positive}), FP (\emph{False Positive}), TN (\emph{True Negative}) and FN (\emph{False Negative}) are respectively \texttt{bad} credit risk correctly classified, \texttt{good} credit risk wrongly classified, \texttt{good} credit risk correctly classified and \texttt{bad} credit risk wrongly classified. \\
+	In the cross validation step, the chosen metric to be maximized is the F1 score.
 	It is probably the best score for this kind of problems, because the accuracy may not be the good choice when dealing with an imbalanced dataset, since it just counts the correctly classified points with respect to all the points, without taking into account the label imbalance. The F1 score, instead, enforces the models to correctly classify the minority class points.
 
 	\section{Dataset balancing} \label{dataset_balancing}
@@ -391,23 +395,126 @@ sorting=ynt
 	\\ This technique has not been implemented by \texttt{sklearn} library, but an implementation from Kawin Nikomborirak\footnote{documentation at: \url{https://pypi.org/project/kfda/}} is distributed in \texttt{kfda} library, based on Ghojogh \emph{et al.} paper \cite{ghojogh2019fisher}. This library offers also the kernel extension of FDA algorithm, and uses \texttt{scikit-learn} interface, thus giving the possibility to use the same methods. Since the number of components of the lower dimensional space is fixed to $1 = c-1$, the hyperparameter to be tuned is only the \texttt{kernel} type; unfortunately, kernel's parameters can not be tuned easily with the actual implementation of this function, thus the default ones provided by \texttt{sklearn} are used.
 
 	\section{Classification results}
-	-per ogni combinazione (dim-reduction - algoritmo) fare ROC, accuracy, confusion matrix, recall, precision, F1 (armonic mean between precision and recall)
-	-istogrammi ? 
-	
-	
-	
-	\newpage
-	\printbibliography
+	In this section, the results of the above algorithm are presented. They are trained on the whole training set with the tuned hyperparameters, and then evaluated on the test set. The metrics used to evaluate performances are the ones already mentioned in Section \ref{cv}: \emph{accuracy}, \emph{precision}, \emph{recall} and \emph{F1}. The \emph{confusion matrix} is also used to better visualize results.
+	\begin{figure}[!ht]
+	\centering
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_DecisionTreeClassifier.png}
+			\setlength{\belowcaptionskip}{-5pt}
+			\captionof{figure}{Decision Tree; no dimensionality reduction, oversampling and hyperparameters \texttt{max\_depth}=$6$, \texttt{criterion}=\emph{gini}, \texttt{min\_samples\_split}=$0.45$ and \texttt{min\_samples\_leaf}=$0.001$}
+			\label{fig:16}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_DecisionTreeClassifierWithPruning.png}
+			\setlength{\belowcaptionskip}{-5pt}
+			\captionof{figure}{Decision Tree With Pruning; no dimensionality reduction, oversampling and hyperparameters \texttt{criterion}=\emph{entropy} and \texttt{ccp\_alpha}=$0.02$}
+			\label{fig:17}
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_BaggingClassifier.png}
+			\setlength{\belowcaptionskip}{-5pt}
+			\captionof{figure}{Bagging; no dimensionality reduction, oversampling, [Figure \ref{fig:16}] hyperparameters and \texttt{n\_estimators}=$10$ and \texttt{max\_samples}=$0.75$}
+			\label{fig:18}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_BaggingClassifierWithPruning.png}
+			\setlength{\belowcaptionskip}{-5pt}
+			\captionof{figure}{Bagging With Pruning; no dimensionality reduction, oversampling, [Figure \ref{fig:17}] hyperparameters and \texttt{n\_estimators}=$1000$ and \texttt{max\_samples}=$0.25$}
+			\label{fig:19}
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_RandomForestClassifier.png}
+			\setlength{\belowcaptionskip}{-10pt}
+			\captionof{figure}{Random Forest; no dimensionality reduction, undersampling, hyperparameters of the best Decision Tree with undersampling and \texttt{n\_estimators}=$100$}
+			\label{fig:20}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_RandomForestClassifierWithPruning.png}
+			\setlength{\belowcaptionskip}{-10pt}
+			\captionof{figure}{Random Forest With Pruning; no dimensionality reduction, oversampling, [Figure \ref{fig:17}] hyperparameters and \texttt{n\_estimators}=$100$}
+			\label{fig:21}
+		\end{minipage}
+	\end{figure}
+	Surprisingly, for all classification algorithm, the best F1 scores during cross validation are obtained using the original training set without any dimensionality reduction technique applied. However, they only exceeded the other ones by a few percent, and generally all results were under $65\%$ of F1. Here [Figure \ref{fig:16}-\ref{fig:25}] the confusion matrices obtained from testing the best combination of dimensionality reduction, balancing technique and hyperparameters for each algorithm are shown.
+	\begin{figure}[!ht]
+		\centering
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_SupportVectorMachine.png}
+			\setlength{\belowcaptionskip}{-5pt}
+			\captionof{figure}{SVM; no dimensionality reduction, oversampling, hyperparameters \texttt{C}=$1$ and \texttt{kernel}=\emph{poly}, \texttt{gamma}=$0.01$, \texttt{coef0}=$1$ and \texttt{degree}=$5$}
+			\label{fig:22}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_LogisticRegression.png}
+			\setlength{\belowcaptionskip}{-5pt}
+			\captionof{figure}{Logistic Regression; no dimensionality reduction, undersampling, hyperparameters \texttt{C}=$1$ and \texttt{penalty}=\emph{l2}}
+			\label{fig:23}
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_KNN.png}
+			\captionof{figure}{K-Nearest Neighbors; no dimensionality reduction, undersampling, hyperparameters \texttt{n\_neighbors}=$13$, \texttt{p}=$1$, \texttt{weights}=\emph{distance}}
+			\label{fig:24}
+		\end{minipage}
+		\begin{minipage}{0.05\textwidth}
+			\quad
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\includegraphics[width=.85\textwidth]{images/confusion_FisherDiscriminantAnalysis.png}
+			\captionof{figure}{Fisher Discriminant Analysis; no dimensionality reduction, oversampling, and \texttt{kernel}=\emph{linear}}
+			\label{fig:25}
+		\end{minipage}
+	\end{figure}
+	\begin{table}[!ht]
+		\centering
+			\begin{tabular}{l|c|c|c|c|}
+				&	\textbf{Accuracy}	& \textbf{Precision} &	\textbf{Recall	}&\textbf{F1}\\
+				\hline
+				\textbf{Decision Tree	}&0.685&	0.479&	0.583&	0.526\\
+				\hline
+				\textbf{Decision Tree With Pruning} &	0.650&	0.448&	0.717&	0.551\\
+				\hline
+				\textbf{Bagging }&	0.625&	0.429&	0.750&	0.545\\
+				\hline
+				\textbf{Bagging With Pruning}&	0.695&	0.494&	0.700&	0.579\\
+				\hline
+				\textbf{Random Forest }&	0.645&	0.446&	0.750&	0.559\\
+				\hline
+				\textbf{Random Forest With Pruning}&	0.655&	0.451&	0.683&	0.543\\
+				\hline
+				\textbf{Support Vector Machine}&	0.710&	0.512&	0.700&	0.592\\
+				\hline
+				\textbf{Logistic Regression}&	0.680&	0.476&	0.667&	0.556\\
+				\hline
+				\textbf{K-NN}&0.600&	0.404&	0.700&	0.512\\
+				\hline
+				\textbf{Fisher Discriminant Analysis}&	0.720&	0.525&	0.700&	0.600\\
+				\hline
+			\end{tabular}
+			\caption{Evaluating metrics for all classification models' best pipelines and hyperparameters.}
+	\end{table}
+
 	\nocite{MohriRostamizadehTalwalkar18}
 	\nocite{understandingml}
 	\nocite{ghojogh2019fisher}
 	% TODO use \nocite{key} to include in the references :
 	% - libro da cui ho guardato la PCA ?
+	\newpage
 	\addcontentsline{toc}{section}{References}
+	\printbibliography
 	
 	% TODO:
-	% - capire la kernelizzazione per poterla spiegare una volta per tutte (nella KPCA e poi NON doverla rispiegare sotto o viceversa)
-	% - capire bene i parametri dei kernel per poterli spiegare (nella KPCA e NON sotto o viceversa)
 	% - scrivere le funzioni + documentazione usata per ogni modello (?)
 	
 \end{document}
