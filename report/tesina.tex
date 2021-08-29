@@ -111,14 +111,14 @@ sorting=ynt
 	In figure [\ref{fig:4}] and [\ref{fig:5}], the same plots of section \ref{features distrubution} are shown, highlighting the distributions separately for the two class labels. 
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=.8\textwidth]{images/distributions_by_class.png}
-		\captionof{figure}{Features' distributions per class}
+		\includegraphics[width=.85\textwidth]{images/boxplots_with_classes.png}
+		\captionof{figure}{Box Plots of \texttt{duration}, \texttt{amount} ad \texttt{age} divided by class}
 		\label{fig:4}
 	\end{figure}
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=.85\textwidth]{images/boxplots_with_classes.png}
-		\captionof{figure}{Box Plots of \texttt{duration}, \texttt{amount} ad \texttt{age} divided by class}
+		\includegraphics[width=.8\textwidth]{images/distributions_by_class.png}
+		\captionof{figure}{Features' distributions per class}
 		\label{fig:5}
 	\end{figure}
 	
@@ -190,7 +190,10 @@ sorting=ynt
 	\end{equation} 
 	in this way, every feature is centered ($\mu_i = 0$) and rescaled in a unitary range. 
 	
-	\begin{figure}[h]
+	\subsection{Training-test split}
+	To proceed in the classification phase, the dataset has been split into training and test set respectively for $80\%$ and $20\%$ in a stratified way, that means that in both sets, the proportion of \texttt{good} and \texttt{bad} credit risk of the original dataset has been kept [Figure \ref{fig:9} and \ref{fig:10}]. This is particularly important, because the test set (the one on which the trained classification algorithm will be evaluated), should be as much similar as possible to real data, that means keeping the proportion of label distribution, do not applying any further transformation to those data and do not use them during training. Indeed, all the dimensionality reduction techniques presented in the next section (\ref{dim_reduction}) has been applied only using the training set.
+	
+	\begin{figure}[!h]
 		\centering
 		\begin{minipage}[c]{0.40\textwidth}
 			\includegraphics[width=\textwidth]{images/training_set.png}
@@ -207,12 +210,15 @@ sorting=ynt
 		\end{minipage}
 	\end{figure}
 	
-	\subsection{Training-test split}
-	To proceed in the classification phase, the dataset has been split into training and test set respectively for $80\%$ and $20\%$ in a stratified way, that means that in both sets, the proportion of \texttt{good} and \texttt{bad} credit risk of the original dataset has been kept [Figure \ref{fig:9} and \ref{fig:10}]. This is particularly important, because the test set (the one on which the trained classification algorithm will be evaluated), should be as much similar as possible to real data, that means keeping the proportion of label distribution, do not applying any further transformation to those data and do not use them during training. Indeed, all the dimensionality reduction techniques presented in the next section (\ref{dim_reduction}) has been applied only using the training set.
-	
 	\section{Dimensionality reduction} \label{dim_reduction}
 	\subsection{Curse of dimensionality}
 	After the encoding phase, the number of features (label excluded) went from 20 to 31. Of course, the encoding was needed, but in data analysis having to deal with many features can be problematic for a lot of reasons. Indeed this is called \emph{the curse of dimensionality}. When the dimensions increase, the volume of the hypercube containing the data increases as well, so all the points become more distant between them, thus making the dataset very sparse. To overcome this problem, the number of data points should increase exponentially with the dimension. Basically, all points become distant and at the same time they have similar distances among them; therefore, the concepts of nearest neighbours and distance become pointless. So, in cases like this, it is always a good idea to consider using a dimensionality reduction technique. 
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=.8\textwidth]{images/correlation_pearson.png}
+		\captionof{figure}{Pairwise correlation according to Pearson coefficient }
+		\label{fig:12}
+	\end{figure}
 	\subsection{Correlation based}
 	One first intuitive way to reduce dimensionality is by looking at the pairwise correlation between features, in order to spot possible duplicated ones. In this case [Figure \ref{fig:12}], most of the features are almost not correlated, or with very low values of pairwise correlation. There are some higher values between the features that are the result of label encoding (especially \textbf{other\_installment\_plans} and \textbf{housing}). Indeed, those features are naturally correlated by construction and, as a matter of fact, their correlation is negative, since their values are all $0$s and $1$s, and if one of them has a $0$ there will be for sure another one having $1$ for that data point. This, together with the fact that each original feature has been encoded in a few number of new ones (from $2$ to $4$) and that in some cases their values were highly imbalanced, contribute to their correlation values. 
 	\par In addition, it can be interesting to notice that there is a positive correlation ($\approx 0.65$) between \textbf{amount} and \textbf{duration} that can be explained by the fact that generally it needs more time to pay an higher credit, and between \textbf{property} and \textbf{housing\_3} ($\approx 0.52$), since the latter is $1$ when the person has its own house, and of course this feature's meaning partially overlaps with the other one.
@@ -220,13 +226,7 @@ sorting=ynt
 	It can be observed that Pearson's coefficient has been used to compute pairwise correlation, however similar results are obtained using Spearman's one.
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=.85\textwidth]{images/correlation_pearson.png}
-		\captionof{figure}{Pairwise correlation according to Pearson coefficient }
-		\label{fig:12}
-	\end{figure}
-	\begin{figure}[h]
-		\centering
-		\includegraphics[width=.85\textwidth]{images/dendrogram_pearson.png}
+		\includegraphics[width=.8\textwidth]{images/dendrogram_pearson.png}
 		\captionof{figure}{Dendrogram of pairwise distance between features}
 		\label{fig:13}
 	\end{figure}
@@ -272,7 +272,7 @@ sorting=ynt
 	\par Unfortunately, a downside of [Kernel] PCA, is that the resulting principal components, that will be the new features used in the classification algorithms, are no longer features with a specific meaning. Instead, they are mappings (linear or not) of the original ones, thus making the interpretability of the classification models very difficult. For this reason, it is interesting to explore methods of dimensionality reduction whose goal is to keep a limited number of the original variables with some specific criteria. For example, the algorithm written by Peng \emph{et al.}\cite{Peng05featureselection} operates an heuristic feature selection based on minimum Redundancy and Maximum Relevance (mRMR)\footnote{documentation at: \url{https://pypi.org/project/pymrmr/}}. Basically it tries to select features by minimizing the dependency among them and maximizing the mean of the mutual information between every feature and the class label. The authors of the paper have investigated two ways to combine redundancy and relevance: the Mutual Information Quotient (MIQ) and the Mutual Information Difference (MID); that is using respectively their ratio or their difference. To evaluate the classification results of this method with the others, it has been set to select $15$ features. However for the two schemas, the selected features are exactly the same: personal\_status\_sex\_1, personal\_status\_sex\_2, other\_installment\_plans\_2, other\_installment\_plans\_3, housing\_1, housing\_2, housing\_3, other\_debtors\_2, other\_debtors\_1, personal\_status\_sex\_3, personal\_status\_sex\_4, purpose\_1, purpose\_2, purpose\_3, other\_installment\_plans\_1. Thus, only \texttt{MIQ} method has been used in the analysis.
 	\section{Cross validation pipeline} \label{cv}
 	At this point, the classification models can be trained to be able to detect good and bad creditors. However, each model can depend on one or more hyperparameters, that are the parameters that control the training process in the machine learning algorithm. In order to choose the best values that make the models to outperform in the desired task, a cross validation process is needed. \\
-	First of all, $5$ different training sets are prepared, one for each dimensionality reduction technique discussed above (Section \ref{dim_reduction}): PCA, KernelPCA, mRMR with method MIQ and mRMR with method MID, plus the one without dimensionality reduction.\\
+	First of all, $4$ different training sets are prepared, one for each dimensionality reduction technique discussed above (Section \ref{dim_reduction}): PCA, KernelPCA and mRMR with method MIQ, plus the one without dimensionality reduction.\\
 	Then, for each of those training sets, a stratified $10$-fold cross validation (\texttt{GridSearchCV}\footnote{documentation at: \url{https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html}} function of \texttt{sklearn} library) is run for each combination of dataset balancing technique (Section \ref{dataset_balancing}) and classification algorithm (Section \ref{classification}) in order to find the best classification pipeline. 
 	In particular, a few comments are necessary:
 	\begin{itemize}
@@ -507,7 +507,7 @@ sorting=ynt
 			\label{fig:27}
 		\end{minipage}
 	\end{figure}
-	\newpage Finally, f1 [Figures \ref{fig:28}-\ref{fig:29}] and accuracy [Figures \ref{fig:30}-\ref{fig:31}] is computed for each pair dimensionality reduction - balancing techniques, for all classification algorithms. Like in cross-validation phase, still at test time, all methods perform better when using all features without any dimensionality reduction. Then, it seems that there is no difference between the two variations of mRMR algorithm that have basically the same performances; qhite the same happens for PCA and KPCA unless some cases (e.g. using FDA with oversampling). Considering all dimensionality reduction methods, (K)PCA performs better that mRMR. Globally, the best performances are given by Fisher Discriminant Analysis, specifically when applied to the original dataset with oversampling.
+	\newpage Finally, f1 [Figures \ref{fig:28}-\ref{fig:29}] and accuracy [Figures \ref{fig:30}-\ref{fig:31}] is computed for each pair dimensionality reduction - balancing techniques, for all classification algorithms. Like in cross-validation phase, still at test time, all methods perform better when using all features without any dimensionality reduction. Then, it seems that there is not so much difference between the PCA and KPCA unless for some cases (e.g. using FDA with oversampling). In addition, considering all dimensionality reduction methods, (K)PCA performs better that mRMR. Globally, the best performances are given by Fisher Discriminant Analysis, specifically when applied to the original dataset with oversampling.
 	\begin{figure}[!h]
 		\centering
 		\includegraphics[width=.9\textwidth]{images/DecisionTreeClassifier_features_importance.png}
