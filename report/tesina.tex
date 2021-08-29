@@ -37,7 +37,7 @@ sorting=ynt
 	\section{Introduction}
 	This report tries to analyse data coming from a German Dataset. It contains 1000 samples, each one describing a person concluding a credit contract with a large German bank around 1970s. For each one it is known if he/she complied with the conditions of	the contract as required or not. Still nowadays this is a very important problem: according to 2020's report of Bank of Italy\footnote{can be found at \url{https://www.bancaditalia.it/pubblicazioni/finanziamenti-raccolta/2021-finanziamenti-raccolta/statistiche_STAFINRA_20210331.pdf}}, only in Italy in 2020 banks have granted credits for more that $7.300$ Billion Euros, with an increase of $4.7\%$ with respect to year 2019.\\
 	In this context, the goal is trying to recognize as much as possible the bad creditors. That means that machine learning models must be enforced to prefer false bad creditors instead of false good creditors, that is, preferring to deny a credit agreement to someone that deserves it instead of giving one to someone that will probably not comply with the contract.
-	\par The code of the analysis is contained in the repository \url{https://github.com/angelicaurba/South-German-Credit-Dataset}; to browse it and the generated images, use the link: \url{https://nbviewer.jupyter.org/github/angelicaurba/south-german-Credit-Dataset/blob/main/dataset_analysis.ipynb}.	
+	\par The code of the analysis is contained in the repository \url{https://github.com/angelicaurba/South-German-Credit-Dataset}; to browse it and the generated images, use the link: \url{https://nbviewer.jupyter.org/github/angelicaurba/south-german-credit-dataset/blob/main/dataset_analysis.ipynb}.	
 	\section{Dataset description}
 	\subsection{History}
 	The dataset used comes from the UCI Machine Learning Repository \cite{uci}, under the name "South German Credit (UPDATE) Data Set" \cite{dataset}. \\
@@ -146,7 +146,7 @@ sorting=ynt
 	
 	\subsection{Missing values and outliers} \label{outliers}
 	The dataset does not contain any missing value.
-	\paragraph{} Regarding outliers detection, by looking at figures [\ref{fig:3}] and [\ref{fig:5}] (for more boxplots see the \href{https://nbviewer.jupyter.org/github/angelicaurba/south-german-Credit-Dataset/blob/main/dataset_analysis.ipynb}{\texttt{jupyter notebook}}) it might seem that the dataset has a huge number of outliers; however, observing one feature at a time can be misleading, since the whole situation should be taken into account. For this reason, instead of considering the univariate distributions separately, can be a good idea to perform a multivariate outliers detection. \\
+	\paragraph{} Regarding outliers detection, by looking at figures [\ref{fig:3}] and [\ref{fig:5}] (for more boxplots see the \href{https://nbviewer.jupyter.org/github/angelicaurba/south-german-credit-dataset/blob/main/dataset_analysis.ipynb}{\texttt{jupyter notebook}}) it might seem that the dataset has a huge number of outliers; however, observing one feature at a time can be misleading, since the whole situation should be taken into account. For this reason, instead of considering the univariate distributions separately, can be a good idea to perform a multivariate outliers detection. \\
 	For this purpose, various distance metrics and techniques exist. Among them, Mahalanobis Distance (introduced by Mahalanobis in 1936 \cite{mahalanobis1936}) is an effective one, its goal is to find the distance between a point $ \va*{x} $ and a distribution. Differently from other techniques, it can manage distributions where every feature has a different scale and variance. Furthermore, by using the covariance matrix, it is able to detect outliers basing on the distribution of points, unlike e.g. the Euclidean distance [Figure \ref{fig:6}].
 	\begin{figure}[h]
 		\centering
@@ -358,7 +358,7 @@ sorting=ynt
 		\item \texttt{sigmoid}: $\tanh(\gamma\langle\vec{x_i},\vec{x_j}\rangle+r)$
 	\end{itemize}
 	where $\gamma$ (\texttt{gamma}), $r$ (\texttt{coef0}) and $d$ (\texttt{degree}), together with the kind of \texttt{kernel} and \texttt{C} are the hyperparameters to be tuned.\\
-	Due to computational reasons, this model's hyperparameters has been tuned with a $2$-fold cross validation; indeed every combination (dimensionality reduction method, balancing dataset method) requires at least $1$ hour and at least $1/2$ hour respectively with $10$-fold and $5$-fold cross validation.
+	Due to computational reasons, this model's hyperparameters have been tuned with a $2$-fold cross validation; indeed every combination (dimensionality reduction method, balancing dataset method) requires at least $1$ hour and at least $1/2$ hour respectively with $10$-fold and $5$-fold cross validation.
 	
 	\subsection{K-Nearest Neighbours}
 	K-Nearest Neighbours is a very simple classification and regression supervised model. Basically, when a new point has to be classified, it is assigned to the most common class (in case of classification) among $k$ nearest points in the training set; while in case of regression, the average of the $k$ neighbours' values is computed. \\ 
